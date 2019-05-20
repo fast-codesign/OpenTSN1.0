@@ -38,11 +38,11 @@ module lupdate #(
 	input [47:0] in_local_mac_id,
 
 //esw signal 
-	output [133:0] out_lu_data,
-	output out_lu_data_wr,
-	output out_lu_data_valid,
-	output out_lu_data_valid_wr,
-	output out_local_mac_id,
+	output reg [133:0] out_lu_data,
+	output reg out_lu_data_wr,
+	output reg out_lu_data_valid,
+	output reg out_lu_data_valid_wr,
+	output reg out_local_mac_id,
 
 //changeable registers and counters
 	output reg direction,
@@ -57,7 +57,7 @@ module lupdate #(
 //should be declare below here 
 parameter msg_type_update = 4'hf; //beacon update message
 
-//delay regs, we need to delay for 3 cycles to identify an update message.
+//delay regs, we need to delay for 2 cycles to identify an update message.
 reg [133:0] lu_data_1;
 reg lu_data_wr_1;
 reg lu_data_valid_1;
@@ -68,14 +68,10 @@ reg lu_data_wr_2;
 reg lu_data_valid_2;
 reg lu_data_valid_wr_2;
 
-reg [133:0] lu_data_3;
-reg lu_data_wr_3;
-reg lu_data_valid_3;
-reg lu_data_valid_wr_3;
 
 always @(posedge clk) begin
 	lu_data_1 <= in_lu_data;
-	lu_data_wr_1 <= in_lu_data;
+	lu_data_wr_1 <= in_lu_data_wr;
 	lu_data_valid_1 <= in_lu_data_valid;
 	lu_data_valid_wr_1 <= in_lu_data_valid_wr;
 
@@ -84,50 +80,59 @@ always @(posedge clk) begin
 	lu_data_valid_2 <= lu_data_valid_1;
 	lu_data_valid_wr_2 <= lu_data_valid_wr_1;
 
-	lu_data_3 <= lu_data_2;
-	lu_data_wr_3 <= lu_data_wr_2;
-	lu_data_valid_3 <= lu_data_valid_2;
-	lu_data_valid_wr_3 <= lu_data_valid_wr_2;
 end
 
 //lupdate control state machine
 reg [4:0] update_pkt_cnt;
-reg [2:0] lupdate_sate;
-parameter IDLE_S = 3'b001,
+reg [2:0] lupdate_state;
+
+localparam IDLE_S = 3'b001,
 		UPDATE_S = 3'b010,
 		TRAN_S = 3'b011;
 
 
 
 always @(posedge clk or negedge rst_n) begin
-	if (rst_n) begin
+	if (!rst_n) begin
 		// reset
-		lupdate_sate <= 3'b0;
+		lupdate_state <= 3'b0;
 		update_pkt_cnt <= 5'b0;
+		direction <= 1'b0;
+		token_bucket_para <= 32'b0;
+		direct_mac_addr <= 48'b0;
+
+		out_lu_data <= 134'b0;
+		out_lu_data_wr <= 1'b0;
+		out_lu_data_valid <= 1'b0;
+		out_lu_data_valid_wr <= 1'b0;
+
+		lupdate_state <= IDLE_S;
+
    
 	end
 	else begin
-		case(lupdate_sate) begin
+		case(lupdate_state)
 			IDLE_S:begin
 				update_pkt_cnt <= 5'b0;
 				//the cycle that the dst_mac can be obtained by lupdate
-				if(lu_data_wr_3==1'b1 && lu_data_3[133:132] == 2'b01)begin
+				if(lu_data_wr_2 == 1'b1 && lu_data_2[133:132] == 2'b01)begin
+
 					if(in_lu_data[127:80] == in_local_mac_id && in_lu_data[11:8] == msg_type_update) begin
 						out_lu_data <= 134'b0;
 						out_lu_data_wr <= 1'b0;
 						out_lu_data_valid <= 1'b0;
 						out_lu_data_valid_wr <= 1'b0;
 
-						lupdate_sate <= UPDATE_S;
+						lupdate_state <= UPDATE_S;
 					end
 
-					else if(lu_data_wr_3 == 1'b1) begin
-						out_lu_data <= lu_data_3;
-						out_lu_data_wr <= lu_data_wr_3;
-						out_lu_data_valid <= lu_data_valid_3;
-						out_lu_data_valid_wr <= lu_data_valid_wr_3;
+					else begin
+						out_lu_data <= lu_data_2;
+						out_lu_data_wr <= lu_data_wr_2;
+						out_lu_data_valid <= lu_data_valid_2;
+						out_lu_data_valid_wr <= lu_data_valid_wr_2;
 
-						lupdate_sate <= TRAN_S;
+						lupdate_state <= TRAN_S;
 					end
 				end
 
@@ -137,7 +142,7 @@ always @(posedge clk or negedge rst_n) begin
 					out_lu_data_valid <= 1'b0;
 					out_lu_data_valid_wr <= 1'b0;
 
-					lupdate_sate <= IDLE_S;
+					lupdate_state <= IDLE_S;
 				end
 			end
 
@@ -149,40 +154,40 @@ always @(posedge clk or negedge rst_n) begin
 				out_lu_data_valid <= 1'b0;
 				out_lu_data_valid_wr <= 1'b0;
 
-				case(update_pkt_cnt)begin
+				case(update_pkt_cnt)
 					//5th cycle is the executable field. 
 					5'd5:begin
-						direction <= lu_data_3[79];
-						token_bucket_para <= lu_data_3[63:32];
-						direct_mac_addr <= lu_data_3[127:80];
+						direction <= lu_data_2[79];
+						token_bucket_para <= lu_data_2[63:32];
+						direct_mac_addr <= lu_data_2[127:80];
 					end
 
 					5'd11:begin
-						lupdate_sate <= IDLE_S;
+						lupdate_state <= IDLE_S;
 					end
-				end
+				endcase
 			end
 
 			TRAN_S:begin
-				if(lu_data_wr_3==1'b1 && lu_data_3[133:132]==2'b10) begin
-					out_lu_data <= lu_data_3;
-					out_lu_data_wr <= lu_data_wr_3;
-					out_lu_data_valid <= lu_data_valid_3;
-					out_lu_data_valid_wr <= lu_data_valid_wr_3;
+				if(lu_data_wr_2==1'b1 && lu_data_2[133:132]==2'b10) begin
+					out_lu_data <= lu_data_2;
+					out_lu_data_wr <= lu_data_wr_2;
+					out_lu_data_valid <= lu_data_valid_2;
+					out_lu_data_valid_wr <= lu_data_valid_wr_2;
 
-					lupdate_sate <= IDLE_S;
+					lupdate_state <= IDLE_S;
 				end
 
 				else begin
-					out_lu_data <= lu_data_3;
-					out_lu_data_wr <= lu_data_wr_3;
-					out_lu_data_valid <= lu_data_valid_3;
-					out_lu_data_valid_wr <= lu_data_valid_wr_3;
+					out_lu_data <= lu_data_2;
+					out_lu_data_wr <= lu_data_wr_2;
+					out_lu_data_valid <= lu_data_valid_2;
+					out_lu_data_valid_wr <= lu_data_valid_wr_2;
 
-					lupdate_sate <= TRAN_S;
+					lupdate_state <= TRAN_S;
 				end
 			end
-		end
+		endcase
 	end
 end
 

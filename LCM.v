@@ -136,6 +136,11 @@ lreport #(
 .out_lr_data_valid(lr2lu_data_valid),
 .out_lr_data_valid_wr(lr2lu_data_valid_wr),
 
+
+.direction(in_direction),
+.token_bucket_para(in_token_bucket_para),
+.direct_mac_addr(in_direct_mac_addr),
+
 .esw_pktin_cnt(esw_pktin_cnt),
 .esw_pktout_cnt(esw_pktout_cnt),
 .bufm_id_cnt(bufm_id_cnt),
