@@ -231,7 +231,7 @@ always @(posedge clk or negedge rst_n) begin
 					4'd0:begin
 						out_lr_data_wr <= 1'b1;
 						//smid == 8'd128;
-						out_lr_data <= {2'b01,4'b0,1'b0,1'b0,6'b0,2'b0,6'b0,16'b0, 8'd128, 88'b0};
+						out_lr_data <= {2'b01,4'b0,1'b0,1'b0,6'b0,2'b0,6'b0,16'd208, 8'd128, 8'd1, 80'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end

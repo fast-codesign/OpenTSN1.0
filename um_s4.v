@@ -94,6 +94,8 @@ wire out_eos_tsn_md_wr;
 
 wire in_eos_valid_wr;
 
+reg [47:0] precision_time;
+
 assign in_eos_valid_wr = pktout_data_valid_wr;
 
  lcm lcm_inst(
@@ -101,11 +103,11 @@ assign in_eos_valid_wr = pktout_data_valid_wr;
 .rst_n(rst_n),
 //um signals
 .in_lcm_data(pktin_data),
-.pktin_data_wr(pktin_data_wr),
+.in_lcm_data_wr(pktin_data_wr),
 .in_lcm_data_valid(pktin_data_valid),
 .in_lcm_data_valid_wr(pktin_data_valid_wr),
 .pktin_ready(pktin_ready),
-.precision_time(),
+.precision_time(precision_time),
 
 .in_local_mac_id(48'h01020304),
 
@@ -272,5 +274,14 @@ ebm ebm_inst(
 .in_ebm_md(out_eos_tsn_md),
 .in_ebm_md_wr(out_eos_tsn_md_wr)  
 );
+
+always@ (posedge clk or negedge rst_n)begin
+    if(!rst_n)begin
+        precision_time <= 48'b0;
+    end
+    else begin
+        precision_time <= precision_time + 1'b1;
+    end
+end
 
 endmodule

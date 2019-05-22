@@ -47,6 +47,7 @@ module lupdate #(
 	output reg beacon_update_master;
 
 //changeable registers and counters
+	output reg [31:0] time_slot_period,
 	output reg direction,
 	output reg [31:0] token_bucket_para,
 	output reg [47:0] direct_mac_addr
@@ -102,6 +103,7 @@ always @(posedge clk or negedge rst_n) begin
 		direction <= 1'b0;
 		token_bucket_para <= 32'b0;
 		direct_mac_addr <= 48'b0;
+		time_slot_period <= 32'h7a12;  //reset as 250us
 
 		out_lu_data <= 134'b0;
 		out_lu_data_wr <= 1'b0;
@@ -163,6 +165,7 @@ always @(posedge clk or negedge rst_n) begin
 						direction <= lu_data_2[79];
 						token_bucket_para <= lu_data_2[63:32];
 						direct_mac_addr <= lu_data_2[127:80];
+						time_slot_period <= lu_data_2[79:48];
 					end
 
 					5'd11:begin

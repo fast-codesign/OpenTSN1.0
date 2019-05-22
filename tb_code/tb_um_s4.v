@@ -71,6 +71,8 @@ um um_s4_tb(
 
 //Part 3: Clk
 
+parameter INTENT = 20;
+
 parameter CYCLE = 10;
 
 //Part 1: wire connection
