@@ -55,6 +55,8 @@ wire          [133:0]ram_dout_data;
 
 reg           [4:0]len;
 
+
+///////////////////////////////////write///////////////////////////////////////
 reg           [1:0]pkt_write_state;
 localparam     W_IDLE_S = 2'd0,
                FIRST_S  = 2'd1,
@@ -70,18 +72,16 @@ always @(posedge clk or negedge rst_n) begin
 	   case(pkt_write_state)
 		  		  
 		  W_IDLE_S:begin
-		      
-		      if(in_data_ctrl_data_wr == 1'b1)begin
-			       data2ram_waddr   <= addr2data_waddr;
-				   ram_wr           <= 1'b1;
-				   ram_din_data     <= in_data_ctrl_data;
-				   ram_wr           <= 1'b1;
+		      ram_wr           <= 1'b0;
+		      if(addr2data_waddr_wr == 1'b1)begin
+			    // data2ram_waddr   <= addr2data_waddr;
+				//  ram_wr           <= 1'b1;
+				//  ram_din_data     <= in_data_ctrl_data;
+				   
 				   pkt_write_state  <= FIRST_S;
 			  end
 			  else begin
-			       pkt_write_state  <= W_IDLE_S;		
-			       	ram_wr           <= 1'b0;
-
+			       pkt_write_state  <= W_IDLE_S;			       
 			  end
 		  end
 		  
@@ -124,6 +124,8 @@ always @(posedge clk or negedge rst_n) begin
    end
 end
 
+
+///////////////////////////////////read///////////////////////////////////////
 reg           [3:0]pkt_read_state;
 localparam     R_IDLE_S = 4'd0,
                WAIT0_S  = 4'd1,

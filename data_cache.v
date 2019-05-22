@@ -69,6 +69,7 @@ addr_mgmt  addr_mgmt(
 
 . addr2data_raddr(addr2data_raddr),
 . addr2data_raddr_wr(addr2data_raddr_wr),
+
 . in_addr_mgmt_ID(in_data_cache_ID),
 . in_addr_mgmt_ID_wr(in_data_cache_ID_wr),
 . in_ram2addr_valid(out_data_cache_valid)

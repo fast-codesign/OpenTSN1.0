@@ -46,6 +46,8 @@ module lreport #(
 
 	output [47:0] out_local_mac_id,  //should be changed to [47:0], represents a mac addr.
 
+	input beacon_update_master;
+
 //readable & changeable registers and counters
 
 	input direction,
@@ -91,6 +93,8 @@ reg [47:0] time_stamp_rec; //record the accurate timestamp.
 reg report_flag_master;
 reg report_flag_slave;
 
+reg beacon_update_slave;
+
 reg [4:0] beacon_report_cycle;
 
 //restore the in_data when needed
@@ -120,6 +124,7 @@ always @(posedge clk or negedge rst_n) begin
 		pktin_ready <= 1'b0;
 		time_stamp_rec <= 48'b0;
 
+		beacon_update_slave <= 1'b0;
 		/***********reg for 1 cycle***********/
 		lr_data <= 134'b0;
 		lr_data_wr <= 1'b0;
@@ -240,9 +245,15 @@ always @(posedge clk or negedge rst_n) begin
 					
 					4'd2:begin
 						out_lr_data_wr <= 1'b1;
-						out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'he, 8'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
+						if(beacon_update_slave != beacon_update_master) begin
+							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'he, 8'b0};
+							beacon_update_slave <= beacon_update_master;
+						end
+						else begin
+							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'he, 8'b0};
+						end
 					end
 					4'd3:begin
 						out_lr_data_wr <= 1'b1;

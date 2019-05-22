@@ -153,7 +153,6 @@ always @(posedge clk or negedge rst_n) begin
 					out_pke_data_wr   <= 1'h0;
 					delay1            <= delay1;
 					delay0            <= delay0;
-					
 					pke_state         <= PARS_S;				
 				end
 		   end

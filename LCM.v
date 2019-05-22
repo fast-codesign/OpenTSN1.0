@@ -90,6 +90,7 @@ wire [47:0] lr2lu_local_mac_id;
 wire lr2lu_direction;
 wire [47:0] lr2lu_direc_mac_addr;
 wire [31:0] lr2lu_token_bucket_para;
+wire beacon_update_master;
 
 parameter time_slot = 16'h7a12;  //counting for 250us
 reg [15:0] time_slot_cnt;  //used to reset every 0x7a12 cycles.
@@ -132,7 +133,7 @@ lreport #(
 .out_lr_data_wr(lr2lu_data_wr),
 .out_lr_data_valid(lr2lu_data_valid),
 .out_lr_data_valid_wr(lr2lu_data_valid_wr),
-
+.beacon_update_master(beacon_update_master),
 
 .direction(out_direction),
 .token_bucket_para(out_token_bucket_para),
@@ -173,6 +174,8 @@ lupdate #(
 .in_lu_data_valid(lr2lu_data_valid),
 .in_lu_data_valid_wr(lr2lu_data_valid_wr),
 .in_local_mac_id(in_local_mac_id),
+
+.beacon_update_master(beacon_update_master),
 
 .out_lu_data(out_lcm_data),
 .out_lu_data_wr(out_lcm_data_wr),

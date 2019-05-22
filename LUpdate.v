@@ -44,6 +44,8 @@ module lupdate #(
 	output reg out_lu_data_valid_wr,
 	output reg out_local_mac_id,
 
+	output reg beacon_update_master;
+
 //changeable registers and counters
 	output reg direction,
 	output reg [31:0] token_bucket_para,
@@ -105,6 +107,7 @@ always @(posedge clk or negedge rst_n) begin
 		out_lu_data_wr <= 1'b0;
 		out_lu_data_valid <= 1'b0;
 		out_lu_data_valid_wr <= 1'b0;
+		beacon_update_master <= 1'b0;
 
 		lupdate_state <= IDLE_S;
 
@@ -163,6 +166,7 @@ always @(posedge clk or negedge rst_n) begin
 					end
 
 					5'd11:begin
+						beacon_update_master <= ~beacon_update_master;
 						lupdate_state <= IDLE_S;
 					end
 				endcase

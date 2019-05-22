@@ -75,6 +75,8 @@ always @(posedge clk or negedge rst_n) begin
         out_ibm_data <= 134'b0;
 		out_ibm_valid <= 1'b0;
         out_ibm_valid_wr <= 1'b0;
+        out_ibm_md <= 24'b0;
+        out_ibm_md_wr <= 1'b0;
         data_state <= IDLE_S;
     end
     else begin
