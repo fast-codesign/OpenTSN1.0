@@ -70,16 +70,18 @@ always @(posedge clk or negedge rst_n) begin
 	   case(pkt_write_state)
 		  		  
 		  W_IDLE_S:begin
-		      ram_wr           <= 1'b0;
-		      if(addr2data_waddr_wr == 1'b1)begin
-			    // data2ram_waddr   <= addr2data_waddr;
-				//  ram_wr           <= 1'b1;
-				//  ram_din_data     <= in_data_ctrl_data;
-				   
+		      
+		      if(in_data_ctrl_data_wr == 1'b1)begin
+			       data2ram_waddr   <= addr2data_waddr;
+				   ram_wr           <= 1'b1;
+				   ram_din_data     <= in_data_ctrl_data;
+				   ram_wr           <= 1'b1;
 				   pkt_write_state  <= FIRST_S;
 			  end
 			  else begin
-			       pkt_write_state  <= W_IDLE_S;			       
+			       pkt_write_state  <= W_IDLE_S;		
+			       	ram_wr           <= 1'b0;
+
 			  end
 		  end
 		  

@@ -116,7 +116,7 @@ always @(posedge clk or negedge rst_n) begin
 		out_lr_data_wr <= 1'b0;
 		out_lr_data_valid <= 1'b0;
 		out_lr_data_valid_wr <= 1'b0; 
-		report_flag_slave <= 1'b1; //set to 1'b1 while debug
+		report_flag_slave <= 1'b0; //set to 1'b1 while debug
 		pktin_ready <= 1'b0;
 		time_stamp_rec <= 48'b0;
 
@@ -146,7 +146,7 @@ always @(posedge clk or negedge rst_n) begin
 				else begin
 					
 					if(in_lr_data_wr == 1'b1)begin
-						out_lr_data <= in_lr_data;
+						out_lr_data <= {in_lr_data[133:88], 8'b1, in_lr_data[79:0]};
 						out_lr_data_wr <= in_lr_data_wr;
 						out_lr_data_valid <= in_lr_data_valid;
 						out_lr_data_valid_wr <= in_lr_data_valid_wr;

@@ -30,7 +30,7 @@ module lcm #(
 	input rst_n,
 //um signals
 	input [133:0] in_lcm_data,
-	input pktin_data_wr,
+	input in_lcm_data_wr,
 	input in_lcm_data_valid,
 	input in_lcm_data_valid_wr,
 	output pktin_ready,
@@ -45,14 +45,10 @@ module lcm #(
 	output out_lcm_data_valid_wr,
 
 //readable & changeable registers and counters
-	output reg out_direction,
-	output reg [31:0] out_token_bucket_para,
-	output reg [47:0] out_direct_mac_addr,
+	output wire out_direction,
+	output wire [31:0] out_token_bucket_para,
+	output wire [47:0] out_direct_mac_addr,
 
-
-	input [47:0] in_token_bucket_para,
-	input [47:0] in_direct_mac_addr,
-	input in_direction,
 
 	//input from esw
 	input [63:0] esw_pktin_cnt,
@@ -74,7 +70,7 @@ module lcm #(
 	input [63:0] goe_pktin_cnt,
 	input [63:0] goe_port0out_cnt,
 	input [63:0] goe_port1out_cnt,
-	input [63:0] goe_discard_cnt,
+	input [63:0] goe_discard_cnt
 
 );
 
@@ -97,6 +93,7 @@ wire [31:0] lr2lu_token_bucket_para;
 
 parameter time_slot = 16'h7a12;  //counting for 250us
 reg [15:0] time_slot_cnt;  //used to reset every 0x7a12 cycles.
+
 
 //---------------reverse time slot for CQF---------------//
 always @(posedge clk or negedge rst_n) begin
@@ -137,9 +134,9 @@ lreport #(
 .out_lr_data_valid_wr(lr2lu_data_valid_wr),
 
 
-.direction(in_direction),
-.token_bucket_para(in_token_bucket_para),
-.direct_mac_addr(in_direct_mac_addr),
+.direction(out_direction),
+.token_bucket_para(out_token_bucket_para),
+.direct_mac_addr(out_direct_mac_addr),
 
 .esw_pktin_cnt(esw_pktin_cnt),
 .esw_pktout_cnt(esw_pktout_cnt),
@@ -164,6 +161,7 @@ lreport #(
 
 );
 
+
 lupdate #(
 	)lupdate(
 
@@ -176,10 +174,10 @@ lupdate #(
 .in_lu_data_valid_wr(lr2lu_data_valid_wr),
 .in_local_mac_id(in_local_mac_id),
 
-.out_lu_data(out_lu_data),
-.out_lu_data_wr(out_lu_data_wr),
-.out_lu_data_valid(out_lu_data_valid),
-.out_lu_data_valid_wr(out_lu_data_valid_wr),
+.out_lu_data(out_lcm_data),
+.out_lu_data_wr(out_lcm_data_wr),
+.out_lu_data_valid(out_lcm_data_valid),
+.out_lu_data_valid_wr(out_lcm_data_valid_wr),
 
 .direction(out_direction),
 .token_bucket_para(out_token_bucket_para),
