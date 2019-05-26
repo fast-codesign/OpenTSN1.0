@@ -34,12 +34,12 @@ input     wire    in_pke_valid,
 input     wire    in_pke_valid_wr,
   
 /////////pkt and action to PAC ///////  
-(*mark_debug="TRUE"*) output    reg     [133:0]out_pke_data,
-(*mark_debug="TRUE"*) output    reg     out_pke_data_wr,
+output    reg     [133:0]out_pke_data,
+output    reg     out_pke_data_wr,
 output    reg     out_pke_valid,
 output    reg     out_pke_valid_wr,
-(*mark_debug="TRUE"*) output    reg     [2:0]out_pke_pkttype,
-(*mark_debug="TRUE"*) output    reg     [101:0]out_pke_key,
+output    reg     [2:0]out_pke_pkttype,
+output    reg     [101:0]out_pke_key,
 
 /////////reg  to LCM /////////////////
 output    reg     [63:0]esw_pktin_cnt
@@ -50,7 +50,7 @@ reg       [133:0]delay0;
 reg       [133:0]delay1;
 
 /////////state machine/////////////
-(*mark_debug="TRUE"*) reg       [1:0]pke_state;
+reg       [1:0]pke_state;
 
 localparam  IDLE_S   = 2'd0,
             MD1      = 2'd1,
@@ -63,8 +63,8 @@ always @(posedge clk or negedge rst_n) begin
 		   out_pke_data_wr   <= 1'h0;
 		   out_pke_valid     <= 1'h0;
 		   out_pke_valid_wr  <= 1'h0;
-		   out_pke_pkttype           <= 3'h0;
-		   out_pke_key               <= 102'h0;
+		   out_pke_pkttype   <= 3'h0;
+		   out_pke_key       <= 102'h0;
 		   
 		   pke_state         <= IDLE_S;
 	  end
@@ -75,20 +75,20 @@ always @(posedge clk or negedge rst_n) begin
 				out_pke_data_wr   <= 1'h0;
 				out_pke_valid     <= 1'h0;
 		        out_pke_valid_wr  <= 1'h0;
-				if((in_pke_data_wr == 1'b1)&&(in_pke_data[133:132] == 2'b01))begin
-					delay0            <= in_pke_data;
-					out_pke_key[5:0]          <= in_pke_data[125:120];
+				if((in_pke_data_wr == 1'b1)&&(in_pke_data[133:132] == 2'b01))begin //waiting for the first frame of the pkt.
+					delay0            <= in_pke_data;//first frame of cached pkt.      
+					out_pke_key[5:0]  <= in_pke_data[125:120];//fast_md[125:120] is inport
 					
 					pke_state         <= MD1;
 				end
 				else begin
 					delay0		      <= 134'h0;
-					out_pke_key               <= 102'h0;
+					out_pke_key       <= 102'h0;
 					
 					pke_state         <= IDLE_S;				
 				end
 		   end
-		   MD1:begin	   
+		   MD1:begin//second frame of cached pkt. 
 				if(in_pke_data_wr == 1'b1)begin
 					delay1            <= delay0;
 					delay0            <= in_pke_data;				
@@ -102,7 +102,7 @@ always @(posedge clk or negedge rst_n) begin
 					pke_state         <= MD1;				
 				end
 		   end
-		   PARS_S:begin
+		   PARS_S:begin//analyzing according to the third pkt[31:16]
 				out_pke_valid     <= 1'h0;
 		        out_pke_valid_wr  <= 1'h0;						
 				if(in_pke_data_wr == 1'b1)begin
@@ -111,34 +111,34 @@ always @(posedge clk or negedge rst_n) begin
 					
 					delay1            <= delay0;
 					delay0            <= in_pke_data;
-					out_pke_key[101:6]        <= in_pke_data[127:32];					
-					if(in_pke_data[31:16]==16'h88F7)begin
+					out_pke_key[101:6]<= in_pke_data[127:32];//extract DMAC and SMAC from pkt[127:32]. 					
+					if(in_pke_data[31:16]==16'h88F7)begin//ptp pkt.
 						out_pke_pkttype   <= 3'h2;
 					end
-					else if(in_pke_data[31:16]==16'h8100)begin
-						case(in_pke_data[15:13])
-							3'h0:begin
+					else if(in_pke_data[31:16]==16'h8100)begin//pkt. with vlan
+						case(in_pke_data[15:13])//pcp
+							3'h0:begin//best effort
 								out_pke_pkttype   <= 3'h0;
 							end
-							3'h1:begin
+							3'h1:begin//best effort
 								out_pke_pkttype   <= 3'h0;
 							end
-							3'h2:begin
+							3'h2:begin//best effort
 								out_pke_pkttype   <= 3'h0;
 							end
-							3'h3:begin
+							3'h3:begin//reserbed bandwidth
 								out_pke_pkttype   <= 3'h1;
 							end
-							3'h4:begin
+							3'h4:begin//reserbed bandwidth
 								out_pke_pkttype   <= 3'h1;
 							end
-							3'h5:begin
+							3'h5:begin//reserbed bandwidth
 								out_pke_pkttype   <= 3'h1;
 							end
-							3'h6:begin
+							3'h6:begin//tsn
 								out_pke_pkttype   <= 3'h3;
 							end
-							3'h7:begin
+							3'h7:begin//tsn
 								out_pke_pkttype   <= 3'h3;
 							end
 						endcase
@@ -153,6 +153,7 @@ always @(posedge clk or negedge rst_n) begin
 					out_pke_data_wr   <= 1'h0;
 					delay1            <= delay1;
 					delay0            <= delay0;
+					
 					pke_state         <= PARS_S;				
 				end
 		   end

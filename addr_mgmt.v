@@ -58,8 +58,8 @@ wire    cfifo_empty;
 wire    cfifo_full; 
 wire    [4:0]cfifo_data_count;
 ////////reg////////////
-reg     fifo_flag;
-reg     [4:0]fifo_cnt;
+reg     fifo_flag;     //FIFO initialization completed
+reg     [4:0]fifo_cnt; //FIFO initialization completed,RAM have 16 id 
 
 assign  out_addr_mgmt_ID_count = cfifo_data_count;
 
@@ -77,12 +77,11 @@ always @(posedge clk or negedge rst_n) begin
 	   write_state         <= W_IDLE_S;
     end
 	else begin
-	   case(write_state)
-		  		  
+	   case(write_state)		  		  
 		  W_IDLE_S:begin
 		     cfifo_rd            <= 1'b0;
-		     if((fifo_flag == 1'b1)&&(cfifo_empty == 1'b0))begin
-                 addr2data_waddr <= {cfifo_rdata[7:0], 7'h0};  
+		     if((fifo_flag == 1'b1)&&(cfifo_empty == 1'b0))begin//transmit write base_ID to data_ctrl
+                 addr2data_waddr <= {cfifo_rdata[3:0], 7'h0};  
                  addr2data_waddr_wr <= 1'b1; 
                                                 
                  write_state <= WRITE_S;
@@ -91,13 +90,11 @@ always @(posedge clk or negedge rst_n) begin
              
                  write_state <= W_IDLE_S;
 			 end
-		  end
-		  
-		  
+		  end		  		  
 		  WRITE_S:begin
 		      addr2data_waddr_wr <= 1'b0; 
-		      case({in_addr_mgmt_valid,in_addr_mgmt_valid_wr})
-			     2'b11:begin
+		      case({in_addr_mgmt_valid,in_addr_mgmt_valid_wr})//waiting data_ctrl transmit pkt completed
+			     2'b11:begin//read out the ID used   
 				      cfifo_rd <= 1'b1;
 					  out_addr_mgmt_ID <= cfifo_rdata;
 					  write_state <= W_WITE_S;
@@ -111,13 +108,11 @@ always @(posedge clk or negedge rst_n) begin
 				      write_state <= WRITE_S;
 				 end
 			  endcase
-		  end
-		  
+		  end		  
 		  W_WITE_S:begin
 		      cfifo_rd <= 1'b0;
               write_state <= W_IDLE_S;		  
-		  end
-		  
+		  end		  
 		 default:begin
 		   cfifo_rd            <= 1'b0;
          
@@ -144,7 +139,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 	else begin
 	   case(read_state)   
-	      FIFO_S:begin
+	      FIFO_S:begin   // FIFO initialization,writing idle ID 
               if(fifo_cnt < 5'd16)begin
                 fifo_cnt <= fifo_cnt + 5'h1;
                 cfifo_wr <= 1'b1;
@@ -161,7 +156,7 @@ always @(posedge clk or negedge rst_n) begin
                 read_state <= R_IDLE_S;           
               end
 	      end
-	      R_IDLE_S:begin
+	      R_IDLE_S:begin  
 		     addr2data_raddr_wr <= 1'b0;
 			 cfifo_wr           <= 1'b0;
 		     if((cfifo_data_count[4] == 1'b1)&&(fifo_flag == 1'b1))begin
@@ -170,23 +165,20 @@ always @(posedge clk or negedge rst_n) begin
 			 else begin
 			     read_state <= READ_S;
 			 end
-		  end
-		  
-		  
+		  end  
 		  READ_S:begin
-		     if(in_addr_mgmt_ID_wr == 1'b1)begin
-			     addr2data_raddr <= {in_addr_mgmt_ID[7:0],7'h0};
+		     if(in_addr_mgmt_ID_wr == 1'b1)begin//transmit read base_ID to data_ctrl
+			     addr2data_raddr <= {in_addr_mgmt_ID[3:0],7'h0};
 				 addr2data_raddr_wr <= 1'b1;
 				 read_state      <= FINISH_S;
 			 end
 			 else begin
 			     read_state      <= READ_S;
 			 end
-		  end
-		  
-		  
+		  end  
 		  FINISH_S:begin
-		      if(in_ram2addr_valid == 1'b1)begin
+		      addr2data_raddr_wr <= 1'b0;
+		      if(in_ram2addr_valid == 1'b1)begin//write the returned ID
 			      cfifo_wr    <= 1'b1;
 				  cfifo_wdata <= in_addr_mgmt_ID;
 				  read_state      <= R_WITE_S;
@@ -195,8 +187,7 @@ always @(posedge clk or negedge rst_n) begin
 			      cfifo_wr <= 1'b0;
 			      read_state      <= FINISH_S;
 			  end
-		  end
-		  
+		  end 
 		  R_WITE_S:begin
 			  cfifo_wr    <= 1'b0;		  
 		      if(in_addr_mgmt_ID_wr == 1'b0)begin
@@ -206,7 +197,6 @@ always @(posedge clk or negedge rst_n) begin
 		           read_state      <= R_WITE_S;
 		      end
 		  end
-		  
 		  default:begin
 		      fifo_flag  <= 1'b0;
               cfifo_wr   <= 1'b0;
@@ -217,7 +207,6 @@ always @(posedge clk or negedge rst_n) begin
 		endcase
 	end
 end
-
 
  fifo_8_16  fifo_8_16_inst(
 	.srst(~rst_n),
@@ -231,7 +220,6 @@ end
 	.full(cfifo_full)
 
 	);
-
 endmodule
 /**********************
 .addr_mgmt  addr_mgmt(

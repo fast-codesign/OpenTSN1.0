@@ -74,7 +74,7 @@ wire       [133:0]pfw2pac_data;
 wire       pfw2pac_data_wr;
 wire       pfw2pac_valid;
 wire       pfw2pac_valid_wr;
-wire       [8:0]pfw2pac_action;
+wire       [10:0]pfw2pac_action;
 wire       pfw2pac_action_wr;
 
 pke pke(

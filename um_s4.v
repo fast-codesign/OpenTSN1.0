@@ -49,39 +49,39 @@ module um #(
 );
 
 
-wire [133:0] lcm2esw_data;
-wire lcm2esw_data_wr;
-wire lcm2esw_data_valid;
-wire lcm2esw_data_valid_wr;
+//lcm to esw//
+wire  [133:0]lcm2esw_data;
+wire  lcm2esw_data_wr;
+wire  lcm2esw_valid;
+wire  lcm2esw_valid_wr;
 
-wire [47:0] direct_mac_addr;
-wire direction;
-wire [47:0] local_mac_addr;
-wire [31:0] token_bucket_para;
-wire time_slot_flag;
-
-wire [63:0] esw_pktin_cnt;
-wire [63:0] esw_pktout_cnt;
-wire [7:0] bufm_ID_cnt;
-
+//esw to ibm//
 wire  [133:0]esw2ibm_data;
 wire  esw2ibm_data_wr;
 wire  esw2ibm_valid;
 wire  esw2ibm_valid_wr;
 wire  [23:0]tsn_md;
 wire  tsn_md_wr;
-
 wire [4:0]ibm2esw_bufm_ID;
 
+reg [47:0] precision_time;
+//ibm to data_cache//
 wire [133:0]out_ibm_data;
 wire out_ibm_data_wr;
 wire out_ibm_valid;
 wire out_ibm_valid_wr;
 wire [7:0]in_ibm_ID;
 wire [4:0]in_ibm_ID_count;
+
+//ibm to eos//
 wire [23:0]out_ibm_md;
 wire out_ibm_md_wr;
-   
+ 
+//eos to ebm//
+wire [7:0]out_eos_tsn_md;
+wire out_eos_tsn_md_wr;
+wire in_ebm_bandwidth_discard;
+//data_cache to ebm// 
 wire out_data_cache_data_wr;
 wire [133:0]out_data_cache_data;
 wire out_data_cache_valid_wr;
@@ -89,55 +89,65 @@ wire out_data_cache_valid;
 wire [7:0]in_data_cache_ID;
 wire in_data_cache_ID_wr;
 
-wire [23:0]out_eos_tsn_md;
-wire out_eos_tsn_md_wr;
+//reg/////////////////
+//lcm to esw//////////
+wire direction;
+wire [47:0]local_mac_addr;
+wire [47:0]direct_mac_addr;
+wire [63:0]esw_pktin_cnt;
+wire [63:0]esw_pktout_cnt;
+wire [7:0]bufm_ID_cnt;
 
-wire in_eos_valid_wr;
+//lcm to eos//////////
+wire [5:0]eos_q0_used_cnt;
+wire [5:0]eos_q1_used_cnt;
+wire [5:0]eos_q2_used_cnt;
+wire [5:0]eos_q3_used_cnt;
+wire time_slot_flag;
+wire [63:0]eos_mdin_cnt;
+wire [63:0]eos_mdout_cnt;
+wire [31:0]token_bucket_para;
 
-reg [47:0] precision_time;
-
-assign in_eos_valid_wr = pktout_data_valid_wr;
-
- lcm lcm_inst(
+lcm lcm(
 .clk(clk),
 .rst_n(rst_n),
 //um signals
 .in_lcm_data(pktin_data),
 .in_lcm_data_wr(pktin_data_wr),
-.in_lcm_data_valid(pktin_data_valid),
-.in_lcm_data_valid_wr(pktin_data_valid_wr),
+.in_lcm_data_valid(pktin_valid),
+.in_lcm_data_valid_wr(pktin_valid_wr),
 .pktin_ready(pktin_ready),
 .precision_time(precision_time),
 
-.in_local_mac_id(48'h01020304),
+.in_local_mac_id(local_mac_id),
 
 //esw signals 
 .out_lcm_data_wr(lcm2esw_data_wr),
 .out_lcm_data(lcm2esw_data),
-.out_lcm_data_valid(lcm2esw_data_valid),
-.out_lcm_data_valid_wr(lcm2esw_data_valid_wr),
+.out_lcm_data_valid(lcm2esw_valid),
+.out_lcm_data_valid_wr(lcm2esw_valid_wr),
 
 //readable & changeable registers and counters
 .out_direction(direction),
 .out_token_bucket_para(token_bucket_para),
 .out_direct_mac_addr(direct_mac_addr),
 
-//input from esw
-.esw_pktin_cnt(),
-.esw_pktout_cnt(),
-.bufm_id_cnt(),
+	//input from esw
+.esw_pktin_cnt(esw_pktin_cnt),
+.esw_pktout_cnt(esw_pktout_cnt),
+.bufm_id_cnt(bufm_ID_cnt),
 
 //input from eos
-.eos_q0_used_cnt(),
-.eos_q1_used_cnt(),
-.eos_q2_used_cnt(),
-.eos_q3_used_cnt(),
+.eos_q0_used_cnt(eos_q0_used_cnt),
+.eos_q1_used_cnt(eos_q1_used_cnt),
+.eos_q2_used_cnt(eos_q2_used_cnt),
+.eos_q3_used_cnt(eos_q3_used_cnt),
 
 .time_slot_flag(time_slot_flag),
-.eos_mdin_cnt(),
-.eos_mdout_cnt(),
+.eos_mdin_cnt(eos_mdin_cnt),
+.eos_mdout_cnt(eos_mdout_cnt),
 
-//input from goe
+//input from goe	
 .goe_pktin_cnt(),
 .goe_port0out_cnt(),
 .goe_port1out_cnt(),
@@ -150,8 +160,8 @@ esw esw(
 
 .in_esw_data(lcm2esw_data),
 .in_esw_data_wr(lcm2esw_data_wr),
-.in_esw_valid(lcm2esw_data_valid),
-.in_esw_valid_wr(lcm2esw_data_valid_wr),
+.in_esw_valid(lcm2esw_valid),
+.in_esw_valid_wr(lcm2esw_valid_wr),
 
 .out_esw_data(esw2ibm_data),
 .out_esw_data_wr(esw2ibm_data_wr),
@@ -172,7 +182,7 @@ esw esw(
 .out_esw2port_valid_wr3(),
 
 .direction(direction),
-.local_mac_addr(48'h01020304),
+.local_mac_addr(local_mac_addr),
 .direct_mac_addr(direct_mac_addr),
 .esw_pktin_cnt(esw_pktin_cnt),
 .esw_pktout_cnt(esw_pktout_cnt),
@@ -223,36 +233,30 @@ data_cache data_cache_inst(
 .in_data_cache_ID_wr(in_data_cache_ID_wr)
 );
 
-
-eos eos_inst(
-//clk & rst
+eos eos(
 .clk(clk),
 .rst_n(rst_n),
-    
-//receive from LCM module
+
 .in_eos_time_slot_flag(time_slot_flag),
-.in_eos_rate_limit(32'd16),                   
-//transmit to LCM module
-.out_eos_q0_used_cnt(),
-.out_eos_q1_used_cnt(),
-.out_eos_q2_used_cnt(), 
-.out_eos_q3_used_cnt(),
-.out_eos_mdin_cnt(), 
-.out_eos_mdout_cnt(), 
+.in_eos_rate_limit(token_bucket_para),
 
-//receive from IBM module
+.out_eos_q0_used_cnt(eos_q0_used_cnt),
+.out_eos_q1_used_cnt(eos_q1_used_cnt),
+.out_eos_q2_used_cnt(eos_q2_used_cnt),
+.out_eos_q3_used_cnt(eos_q3_used_cnt),
+.out_eos_mdin_cnt(eos_mdin_cnt), 
+.out_eos_mdout_cnt(eos_mdout_cnt),
+
 .in_eos_md(out_ibm_md),
-.in_eos_md_wr(out_ibm_md_wr),  
+.in_eos_md_wr(out_ibm_md_wr),
 
-//receive from UDO module
 .pktout_usedw_0(8'b1),
-.pktout_usedw_1(8'b1),           
+.pktout_usedw_1(8'b1), 
 
-//receive from EBM module
-.in_eos_pkt_valid(in_eos_valid_wr),
-//transmit to EBM module
-.out_eos_md(out_eos_tsn_md), 
-.out_eos_md_wr(out_eos_tsn_md_wr)
+.out_eos_bandwidth_discard(in_ebm_bandwidth_discard),
+.out_eos_md(out_eos_tsn_md),
+.out_eos_md_wr(out_eos_tsn_md_wr),
+.in_eos_pkt_valid(pktout_valid)
 );
 
 ebm ebm_inst(
@@ -268,20 +272,23 @@ ebm ebm_inst(
 
 .out_ebm_data(pktout_data),
 .out_ebm_data_wr(pktout_data_wr),
-.out_ebm_valid(pktout_data_valid),
-.out_ebm_valid_wr(pktout_data_valid_wr),
+.out_ebm_valid(pktout_valid),
+.out_ebm_valid_wr(pktout_valid_wr),
 
+.in_ebm_bandwidth_discard(in_ebm_bandwidth_discard),
 .in_ebm_md(out_eos_tsn_md),
 .in_ebm_md_wr(out_eos_tsn_md_wr)  
 );
 
-always@ (posedge clk or negedge rst_n)begin
+always@(posedge clk or negedge rst_n)begin
     if(!rst_n)begin
         precision_time <= 48'b0;
     end
+    
     else begin
         precision_time <= precision_time + 1'b1;
     end
 end
-
 endmodule
+
+

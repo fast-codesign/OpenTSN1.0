@@ -8,7 +8,7 @@
 //FAST URL://www.fastswitch.org 
 //Target Device: Xilinx
 //Filename: data_ctrl.v
-//Version: 3.1
+//Version: 1.0
 //Author : FAST Group
 //*************************************************************
 //                     Module Description
@@ -19,7 +19,7 @@
 //                     Revision List
 //*************************************************************
 //	rn1: 
-//      date:  2019/04/01
+//      date:  2019/05/15
 //      modifier: 
 //      description: 
 ///////////////////////////////////////////////////////////////// 
@@ -33,28 +33,25 @@ module data_cache#(
     input  wire  rst_n,
 	
 //pkt from gpp
-    input  wire  in_data_cache_data_wr,
-    input  wire  [133:0] in_data_cache_data,
+    (*mark_debug="TRUE"*)input  wire  in_data_cache_data_wr,
+    (*mark_debug="TRUE"*)input  wire  [133:0] in_data_cache_data,
     input  wire  in_data_cache_valid_wr,
     input  wire  in_data_cache_valid,
-	output wire  [7:0]out_data_cache_ID,
-	output wire  [4:0]out_data_cache_ID_count,
+	(*mark_debug="TRUE"*)output wire  [7:0]out_data_cache_ID,
+	(*mark_debug="TRUE"*)output wire  [4:0]out_data_cache_ID_count,
 
 //transport to gda module     
-    output wire  out_data_cache_data_wr,
-    output wire  [133:0] out_data_cache_data,
+    (*mark_debug="TRUE"*)output wire  out_data_cache_data_wr,
+    (*mark_debug="TRUE"*)output wire  [133:0] out_data_cache_data,
     output wire  out_data_cache_valid_wr,
     output wire  out_data_cache_valid,
-	input  wire  [7:0]in_data_cache_ID,
-	input  wire  in_data_cache_ID_wr
+	(*mark_debug="TRUE"*)input  wire  [7:0]in_data_cache_ID,
+	(*mark_debug="TRUE"*)input  wire  in_data_cache_ID_wr
 );
 wire         [10:0]addr2data_waddr;
 wire         addr2data_waddr_wr;
 wire         [10:0]addr2data_raddr;
 wire         addr2data_raddr_wr;
-
-reg  [31:0] in_cache_data_count;     //in data_cache data count
-reg  [31:0] out_cache_data_count;    //out data_cache data count
 
 addr_mgmt  addr_mgmt(            
 . clk(clk),
@@ -69,7 +66,6 @@ addr_mgmt  addr_mgmt(
 
 . addr2data_raddr(addr2data_raddr),
 . addr2data_raddr_wr(addr2data_raddr_wr),
-
 . in_addr_mgmt_ID(in_data_cache_ID),
 . in_addr_mgmt_ID_wr(in_data_cache_ID_wr),
 . in_ram2addr_valid(out_data_cache_valid)

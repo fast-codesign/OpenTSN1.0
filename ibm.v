@@ -8,19 +8,19 @@
 //FAST URL://www.fastswitch.org 
 //Target Device: Xilinx
 //Filename: ibm.v
-//Version: 3.1
+//Version: 1.0
 //Author : FAST Group
 //*************************************************************
 //                     Module Description
 //*************************************************************
 // 1)receive pkt from port or cpu
 // 2)transmit pkt to data_cache
-// 3)transmit md and phv to gpp
+// 3)transmit md  to eos
 //*************************************************************
 //                     Revision List
 //*************************************************************
 //	rn1: 
-//      date:  2019/05/13
+//      date:  2019/05/15
 //      modifier: 
 //      description: 
 ///////////////////////////////////////////////////////////////// 
@@ -52,11 +52,10 @@ module ibm(
 
 //parse TSN_MD transmit to next module
    output reg[23:0]       out_ibm_md,
-   output wire            out_ibm_md_wr
+   output reg             out_ibm_md_wr
 );
 
-reg          out_ibm_valid_reg;
-reg          out_ibm_valid_reg1;
+reg          out_ibm_valid_delay;
 reg          [23:0]tsn_md_reg;
 
 reg [1:0]    data_state;
@@ -64,10 +63,9 @@ reg [1:0]    data_state;
 //             Retransmit Pkt To Data_Cache
 //***************************************************
 assign out_ibm_bufm_ID = in_ibm_ID_count;
-assign out_ibm_md_wr   = out_ibm_valid_reg1;
-localparam    IDLE_S  = 2'd0,
-              TRANS_S = 2'd1,
-              DISC_S  = 2'd2;     
+localparam    IDLE_S   = 2'd0,
+              TRANS_S  = 2'd1,
+              DISC_S   = 2'd2;     
               
 always @(posedge clk or negedge rst_n) begin 
     if(rst_n == 1'b0) begin 
@@ -75,8 +73,7 @@ always @(posedge clk or negedge rst_n) begin
         out_ibm_data <= 134'b0;
 		out_ibm_valid <= 1'b0;
         out_ibm_valid_wr <= 1'b0;
-        out_ibm_md <= 24'b0;
-        out_ibm_md_wr <= 1'b0;
+		
         data_state <= IDLE_S;
     end
     else begin
@@ -88,17 +85,20 @@ always @(posedge clk or negedge rst_n) begin
                     if((in_ibm_data[87:80]==8'd1)||(in_ibm_data[87:80]>8'd4)) begin
                         out_ibm_data_wr <= 1'b1;
                         out_ibm_data <= in_ibm_data;
+						
                         data_state <= TRANS_S;
                     end 
                     else begin 
                         out_ibm_data_wr <= 1'b0;
                         out_ibm_data <= 134'b0;
+						
                         data_state <= DISC_S;
                     end
                 end
                 else begin
                     out_ibm_data_wr <= 1'b0;
                     out_ibm_data <= 134'b0;
+					
                     data_state <= IDLE_S;
                 end
             end
@@ -108,10 +108,12 @@ always @(posedge clk or negedge rst_n) begin
 			    out_ibm_valid <= in_ibm_valid;
                 if(in_ibm_data[133:132] == 2'b10) begin
                     out_ibm_valid_wr <= 1'b1; 
+					
                     data_state <= IDLE_S;
                 end
                 else begin
-                    out_ibm_valid_wr <= 1'b0;           
+                    out_ibm_valid_wr <= 1'b0;    
+					
                     data_state <= TRANS_S;
                 end
             end 
@@ -132,12 +134,12 @@ end
 //************************************************
 //              Transmit MD
 //************************************************
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk or negedge rst_n) begin//wait for in_ibm_ID
     if(rst_n == 1'b0) begin 
         out_ibm_md    <= 24'b0;
     end
     else begin 	 
-		     out_ibm_md <= {tsn_md_reg[23:8],in_ibm_ID}; 
+	    out_ibm_md <= {tsn_md_reg[23:8],in_ibm_ID}; 
 	end
 end
 
@@ -155,22 +157,21 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-
-always @(posedge clk or negedge rst_n) begin
-    if(rst_n == 1'b0) begin 
-		out_ibm_valid_reg <= 1'b0;
+always @(posedge clk or negedge rst_n) begin//delay onr frame for synchronize with out_ibm_md
+    if(rst_n == 1'b0) begin                 //ensure in_ibm_ID in the out_ibm_md
+		out_ibm_valid_delay <= 1'b0;
     end
     else begin 
-	    out_ibm_valid_reg <= out_ibm_valid;
+	    out_ibm_valid_delay <= out_ibm_valid;
     end
 end
 
 always @(posedge clk or negedge rst_n) begin
     if(rst_n == 1'b0) begin 
-		out_ibm_valid_reg1 <= 1'b0;
+		out_ibm_md_wr <= 1'b0;
     end
     else begin 
-	    out_ibm_valid_reg1 <= out_ibm_valid_reg;
+	    out_ibm_md_wr <= out_ibm_valid_delay;
     end
 end
 

@@ -1,7 +1,7 @@
 /*========================================================================================================*\
           Filename : gc.v,gate control
             Author : peng jintao
-       Description : Judge whether four queues(Q0°¢Q1°¢Q2°¢Q3) can be scheduled; transmit result to TS module.
+       Description : Judge whether four queues(Q0„ÄÅQ1„ÄÅQ2„ÄÅQ3) can be scheduled; transmit result to TS module.
 	     Called by : 
   Revision History : 5/16/2019 Revision 1.0  peng jintao
                      mm/dd/yy
@@ -25,10 +25,12 @@ input	wire     [6:0]  in_gc_pkt_len,
 
 //receive from LCM
 input	wire            in_gc_time_slot_flag,
-input	wire     [31:0] in_gc_rate_limit,       //100*8ns(per clock)*(rate(bps)/8)*(10^-9)= rate*(10^-7)£ªadd number of token per 800ns(100 clocks); the minimum committed information rate 10Mbps is allowed.
+input	wire     [31:0] in_gc_rate_limit,       // =100*8ns(per clock)*(rate(bps)/8)*(10^-9)= rate/(10Mbps)Ôºõadd number of token per 800ns(100 clocks); the minimum committed information rate 10Mbps is allowed.
 
 //receive from EBM
 input	wire            in_gc_pkt_valid,
+//transmit to EBM
+output	reg             out_gc_bandwidth_discard,       //Judge whether bandwidth reservation traffic is discarded in EBM; high active.
 
 //receive from UDO
 input	wire      [7:0]  pktout_usedw_0,
@@ -41,36 +43,41 @@ input	wire            in_gc_q2_rden
 
 );
 
+wire [11:0] pkt_len;
+assign pkt_len = {5'b0,in_gc_pkt_len}<<4;
+
 //token bucken parameter
 localparam TB_size = 12'h7FF;   //committed burst size is 2047 Byte.
 reg  [11:0] RT;        //remaining tokens
 reg  [11:0] CT;        //consume tokens,1Byte consumes 1 token.
 reg  [6:0]  TB_cnt;    //timer of token bucken
-
-wire [11:0] pkt_len;
-assign pkt_len = {5'b0,in_gc_pkt_len}<<4;
-
 //************************************************************
 //                   Consume tokens
 //************************************************************
 always@(posedge clk or negedge rst_n) begin
     if(rst_n == 1'b0) begin
-        CT <= 12'd0;		
+        CT <= 12'd0;
+        out_gc_bandwidth_discard <= 1'b0;		
     end
     else begin
-		if(in_gc_q2_rden == 1'b1)begin
+		if((in_gc_q2_rden == 1'b1) && (RT >= pkt_len))begin
 		    CT <= pkt_len;
+		    out_gc_bandwidth_discard <= 1'b0;
+		end
+		else if((in_gc_q2_rden == 1'b1) && (RT < pkt_len))begin
+		    CT <= 12'd0;
+		    out_gc_bandwidth_discard <= 1'b1;             //discard
 		end
 		else begin
 		    CT <= 12'd0;
+		    out_gc_bandwidth_discard <= 1'b0;
 		end
     end
-end
-
+end 
 //************************************************************
 //                    Count token
 //************************************************************
-always@(negedge clk or posedge rst_n) begin
+always@(negedge clk or negedge rst_n) begin
     if(rst_n == 1'b0) begin
         RT <= 12'd0;
 		TB_cnt <= 7'd0;
@@ -137,7 +144,7 @@ always@(posedge clk or negedge rst_n) begin
 		                out_gc_schedule_valid[1] <= 1'b0;
 					end
 					
-					if((RT >= pkt_len) && (!in_gc_fifo_empty[2]) && ((!in_gc_md_outport[2] && (pktout_usedw_0 <= 20)) || (in_gc_md_outport[2] && (pktout_usedw_1 <= 20))))begin        //Judge whether Q2 queue can be scheduled
+					if((!in_gc_fifo_empty[2]) && ((!in_gc_md_outport[2] && (pktout_usedw_0 <= 20)) || (in_gc_md_outport[2] && (pktout_usedw_1 <= 20))))begin        //Judge whether Q2 queue can be scheduled
 		                out_gc_schedule_valid[2] <= 1'b1;  					
                     end
 		            else begin

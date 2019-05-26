@@ -1,5 +1,5 @@
 `timescale 1 ns/ 1ps
-module tb_mu_s4
+module um_tb
 	(
 	);
 //define reg and wire
@@ -72,7 +72,6 @@ um um_s4_tb(
 //Part 3: Clk
 
 parameter INTENT = 20;
-
 parameter CYCLE = 10;
 
 //Part 1: wire connection

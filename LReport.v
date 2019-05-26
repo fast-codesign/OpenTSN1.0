@@ -46,7 +46,7 @@ module lreport #(
 
 	output [47:0] out_local_mac_id,  //should be changed to [47:0], represents a mac addr.
 
-	input beacon_update_master;
+	input beacon_update_master,
 
 //readable & changeable registers and counters
 
@@ -85,8 +85,8 @@ module lreport #(
 
 //local_mac_addr = 00-06-06-02-00-00-00-ID
 
-localparam cnc_mac_addr = 48'h010203040506;  //CNC鑺傜偣mac鍦板潃
-//parameter time_inteval = 20'hFFFFF;  //鍚屾鍛ㄦ湡涓�8ms宸﹀彸  2^20 us
+localparam cnc_mac_addr = 48'h010203040506;  //CNC鑺傜偣mac鍦板�?
+//parameter time_inteval = 20'hFFFFF;  //鍚屾鍛ㄦ湡涓�8ms宸﹀�?  2^20 us
 
 
 reg [47:0] time_stamp_rec; //record the accurate timestamp.
@@ -105,6 +105,7 @@ reg lr_data_valid_wr;
 
 //lreport state machine
 reg [2:0] lreport_state;
+reg [15:0] ptp_seq;
 
 assign out_local_mac_id = in_local_mac_id;
 //=========================== beacon report ========================//
@@ -112,7 +113,8 @@ localparam IDLE_S = 3'b001,
 		TRAN_S = 3'b010,
 		BTRAN_S = 3'b011,
 		Set1_S = 3'b110,
-		Set2_S = 3'b111;
+		Set2_S = 3'b111,
+		Set3_S = 3'b100;
 always @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		// reset
@@ -121,8 +123,9 @@ always @(posedge clk or negedge rst_n) begin
 		out_lr_data_valid <= 1'b0;
 		out_lr_data_valid_wr <= 1'b0; 
 		report_flag_slave <= 1'b0; //set to 1'b1 while debug
-		pktin_ready <= 1'b0;
+		pktin_ready <= 1'b1;
 		time_stamp_rec <= 48'b0;
+		ptp_seq <= 16'b0;
 
 		beacon_update_slave <= 1'b0;
 		/***********reg for 1 cycle***********/
@@ -144,7 +147,7 @@ always @(posedge clk or negedge rst_n) begin
                     out_lr_data_wr <= 1'b0;
                     out_lr_data_valid <= 1'b0;
                     out_lr_data_valid_wr <= 1'b0; 
-					pktin_ready <= 1'b1;
+					pktin_ready <= 1'b0;
 					time_stamp_rec <= precision_time;
 					lreport_state <= Set1_S;
 				end
@@ -156,7 +159,7 @@ always @(posedge clk or negedge rst_n) begin
 						out_lr_data_valid <= in_lr_data_valid;
 						out_lr_data_valid_wr <= in_lr_data_valid_wr;
 						
-						pktin_ready <= 1'b0;
+						pktin_ready <= 1'b1;
 
 						beacon_report_cycle <= 5'b0;
 						lreport_state <= TRAN_S;
@@ -167,7 +170,7 @@ always @(posedge clk or negedge rst_n) begin
 						out_lr_data_wr <= 1'b0;
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0; 
-						pktin_ready <= 1'b0;
+						pktin_ready <= 1'b1;
 
 						beacon_report_cycle <= 5'b0;
 						lreport_state <= IDLE_S;
@@ -188,18 +191,46 @@ always @(posedge clk or negedge rst_n) begin
 					lr_data_valid <= in_lr_data_valid;
 					lr_data_valid_wr <= in_lr_data_valid_wr;
 
-					pktin_ready <= 1'b0;
+					pktin_ready <= 1'b1;
 					lreport_state <= Set2_S;
 				end
 			end
 
 			Set2_S:begin
+
+				if(in_lr_data_wr == 1'b1) begin
+					out_lr_data <= lr_data;
+					out_lr_data_wr <= lr_data_wr;
+					out_lr_data_valid <= lr_data_valid;
+					out_lr_data_valid_wr <= lr_data_valid_wr;
+
+					lr_data <= in_lr_data;
+					lr_data_wr <= in_lr_data_wr;
+					lr_data_valid <= in_lr_data_valid;
+					lr_data_valid_wr <= in_lr_data_valid_wr;
+
+					if(in_lr_data[133:132] == 2'b10)begin
+						lreport_state <= Set3_S;
+					end
+
+				end
+
+				else begin
+					out_lr_data <= lr_data;
+					out_lr_data_wr <= lr_data_wr;
+					out_lr_data_valid <= lr_data_valid;
+					out_lr_data_valid_wr <= lr_data_valid_wr;
+
+					lreport_state <= TRAN_S;
+				end
+				
+			end
+
+			Set3_S: begin
 				out_lr_data <= lr_data;
 				out_lr_data_wr <= lr_data_wr;
 				out_lr_data_valid <= lr_data_valid;
 				out_lr_data_valid_wr <= lr_data_valid_wr;
-
-				lreport_state <= TRAN_S;
 			end
 
 			TRAN_S: begin
@@ -263,7 +294,7 @@ always @(posedge clk or negedge rst_n) begin
 					end
 					4'd4:begin
 						out_lr_data_wr <= 1'b1;
-						out_lr_data <= {2'b11,4'b0,128'b0};
+						out_lr_data <= {2'b11,4'b0,96'b0, ptp_seq, 16'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -320,10 +351,30 @@ always @(posedge clk or negedge rst_n) begin
 						out_lr_data_valid <= 1'b1;
 						out_lr_data_valid_wr <= 1'b1;
 
+						ptp_seq <= ptp_seq + 16'b1;
+
+						//report_flag_slave <= report_flag_master;
+						
+					end       
+					4'd13:begin
+						out_lr_data_wr <= 1'b0;
+						out_lr_data <= 134'b0;
+						out_lr_data_valid <= 1'b0;
+						out_lr_data_valid_wr <= 1'b0;
+
+						
+					end  
+					4'd14:begin
+						out_lr_data_wr <= 1'b0;
+						out_lr_data <= 134'b0;
+						out_lr_data_valid <= 1'b0;
+						out_lr_data_valid_wr <= 1'b0;
+
 						report_flag_slave <= report_flag_master;
-						pktin_ready <= 1'b0;
+						pktin_ready <= 1'b1;
 						lreport_state <= IDLE_S;
-					end
+						
+					end                                  
 				endcase
 			end
 		endcase
@@ -338,7 +389,7 @@ always @(posedge clk or negedge rst_n) begin
 		report_flag_master <= 1'b0;
 	end
 	else begin
-		if(precision_time[19:0] == 20'b0) begin
+		if(precision_time[31:0] == 32'hffff) begin
 			report_flag_master <= ~report_flag_master;
 		end
 

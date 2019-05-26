@@ -67,16 +67,16 @@ always @(posedge clk or negedge rst_n) begin
 		        out_qs_md1 <= in_qs_md[8:0];
 			    out_qs_md1_wr <= 1'b1;
 		    end
+		    else if(in_qs_md[23:21] == 3'd2)begin
+                out_qs_md2[15:9] <= 7'd0;               //not do traffic shaping in GC module, and not consume tokens
+                out_qs_md2[8:0] <= in_qs_md[8:0];
+                out_qs_md2_wr <= 1'b1;
+            end
 			else if(in_qs_md[23:21] == 3'd1)begin
 			    out_qs_md2[15:9] <= (in_qs_md[20:9]>>4) - 12'd2;        //pkt_length(Byte)/(16Byte per clock) - 2 clock's metadata
 			    out_qs_md2[8:0] <= in_qs_md[8:0];
 				out_qs_md2_wr <= 1'b1;
 			end
-			else if(in_qs_md[23:21] == 3'd2)begin
-                out_qs_md2[15:9] <= 7'd0;               //not do traffic shaping in GC module, and not consume tokens
-                out_qs_md2[8:0] <= in_qs_md[8:0];
-                out_qs_md2_wr <= 1'b1;
-            end
 			else if(in_qs_md[23:21] == 3'd0)begin
 			    out_qs_md3 <= in_qs_md[8:0];
 				out_qs_md3_wr <= 1'b1;
@@ -111,3 +111,4 @@ always @(posedge clk or negedge rst_n) begin
 	end	
 end
 endmodule
+

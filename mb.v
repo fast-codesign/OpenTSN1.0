@@ -48,12 +48,20 @@ output	reg      [7:0]  out_mb_md,
 output	reg             out_mb_md_wr,    
 
 //transmit to LCM 
-output	wire      [4:0]  out_mb_q0_used_cnt,
-output	wire      [4:0]  out_mb_q1_used_cnt,
-output	wire      [4:0]  out_mb_q2_used_cnt, 
-output	wire      [4:0]  out_mb_q3_used_cnt
-
+output	wire      [5:0]  out_mb_q0_used_cnt,
+output	wire      [5:0]  out_mb_q1_used_cnt,
+output	wire      [5:0]  out_mb_q2_used_cnt, 
+output	wire      [5:0]  out_mb_q3_used_cnt
 );
+
+wire      [4:0]  mb_q0_used_cnt;
+wire      [4:0]  mb_q1_used_cnt;
+wire      [4:0]  mb_q2_used_cnt; 
+wire      [4:0]  mb_q3_used_cnt;
+assign out_mb_q0_used_cnt = {1'b0,mb_q0_used_cnt};
+assign out_mb_q1_used_cnt = {1'b0,mb_q1_used_cnt};
+assign out_mb_q2_used_cnt = {1'b0,mb_q2_used_cnt};
+assign out_mb_q3_used_cnt = {1'b0,mb_q3_used_cnt};
 
 //fifo dout
 wire   [8:0]  q0fifo_rmd;
@@ -100,7 +108,7 @@ end
 	.rd_en(in_mb_q0_rden),
 	.wr_en(in_mb_md0_wr),
 	.dout(q0fifo_rmd),
-	.data_count(out_mb_q0_used_cnt),
+	.data_count(mb_q0_used_cnt),
 	.empty(out_mb_fifo_empty[0]),
 	.full()
 	);
@@ -112,7 +120,7 @@ end
 	.rd_en(in_mb_q1_rden),
 	.wr_en(in_mb_md1_wr),
 	.dout(q1fifo_rmd),
-	.data_count(out_mb_q1_used_cnt),
+	.data_count(mb_q1_used_cnt),
 	.empty(out_mb_fifo_empty[1]),
 	.full()
 	);
@@ -124,7 +132,7 @@ end
 	.rd_en(in_mb_q2_rden),
 	.wr_en(in_mb_md2_wr),
 	.dout(q2fifo_rmd),
-	.data_count(out_mb_q2_used_cnt),
+	.data_count(mb_q2_used_cnt),
 	.empty(out_mb_fifo_empty[2]),
 	.full()
 	);	
@@ -136,9 +144,8 @@ end
 	.rd_en(in_mb_q3_rden),
 	.wr_en(in_mb_md3_wr),
 	.dout(q3fifo_rmd),
-	.data_count(out_mb_q3_used_cnt),
+	.data_count(mb_q3_used_cnt),
 	.empty(out_mb_fifo_empty[3]),
 	.full()
 	);		
 endmodule
-

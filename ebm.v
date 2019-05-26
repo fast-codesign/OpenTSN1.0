@@ -8,18 +8,19 @@
 //FAST URL://www.fastswitch.org 
 //Target Device: Xilinx
 //Filename: ebm.v
-//Version: 3.1
+//Version: 1.0
 //Author : FAST Group
 //*************************************************************
 //                     Module Description
 //*************************************************************
 // 1)receive pkt from data_cache
 // 2)transmit id to data_cache
+// 3)transmit pkt to goe
 //*************************************************************
 //                     Revision List
 //*************************************************************
 //	rn1: 
-//      date:  2019/04/01
+//      date:  2019/05/15
 //      modifier: 
 //      description: 
 ///////////////////////////////////////////////////////////////// 
@@ -43,10 +44,13 @@ output  reg   out_ebm_data_wr,
 output  reg   out_ebm_valid,
 output  reg   out_ebm_valid_wr,
 
-//input tsn_md from eos
-input  wire   [11:0]in_ebm_md,
+//input from eos
+input  wire   in_ebm_bandwidth_discard,
+input  wire   [7:0]in_ebm_md,
 input  wire   in_ebm_md_wr
 );
+
+reg           bandwidth_discard_flag;
 
 reg      [1:0]ebm_state;
 localparam    IDLE_S   =2'd0,
@@ -62,6 +66,7 @@ always @(posedge clk or negedge rst_n) begin
 
 		  out_ebm_ID        <= 8'b0;
 		  out_ebm_ID_wr     <= 1'b0;
+		  bandwidth_discard_flag <= 1'b0;
 		  
 		  ebm_state         <= IDLE_S;		  
 	end
@@ -73,7 +78,14 @@ always @(posedge clk or negedge rst_n) begin
 		           out_ebm_valid     <=1'b0;
 		           out_ebm_valid_wr  <=1'b0;
 				   
-				   if(in_ebm_md_wr == 1'h1)begin
+				   if(in_ebm_bandwidth_discard == 1'b1)begin//discard
+				       bandwidth_discard_flag <= 1'b1;
+				   end
+				   else begin
+				       bandwidth_discard_flag <= bandwidth_discard_flag;	 
+				   end
+
+				   if(in_ebm_md_wr == 1'h1)begin//extract ID form in_ebm_md
 					    out_ebm_ID     <= in_ebm_md[7:0];
 						out_ebm_ID_wr  <= 1'b1;
 						
@@ -87,9 +99,9 @@ always @(posedge clk or negedge rst_n) begin
 				   end
 			end
 			WITE_S:begin			   
-				   if(in_ebm_data_wr == 1'b1)begin
+				   if(in_ebm_data_wr == 1'b1)begin//waiting for pkt form data_cache
 					    out_ebm_data    <= in_ebm_data;
-						out_ebm_data_wr <= 1'h1;
+						out_ebm_data_wr <= ~bandwidth_discard_flag;
 						
 						ebm_state       <= TRAN_S;	
 				   end
@@ -102,12 +114,12 @@ always @(posedge clk or negedge rst_n) begin
 			end
 			TRAN_S:begin
 				   out_ebm_data    <= in_ebm_data;
-				   out_ebm_data_wr <= 1'h1;			
+				   out_ebm_data_wr <= ~bandwidth_discard_flag;			
 				   if(in_ebm_data[133:132] == 2'b10)begin
-		                out_ebm_valid     <=1'b1;
-		                out_ebm_valid_wr  <=1'b1;
+		                out_ebm_valid     <= 1'h1;
+		                out_ebm_valid_wr  <= ~bandwidth_discard_flag;
 		                out_ebm_ID_wr     <= 1'b0;
-						
+						bandwidth_discard_flag <= 1'b0;
 						ebm_state         <= IDLE_S;
 				   end
 				   else begin
@@ -122,7 +134,9 @@ always @(posedge clk or negedge rst_n) begin
 		           out_ebm_data_wr   <=1'b0;
 		           out_ebm_valid     <=1'b0;
 		           out_ebm_valid_wr  <=1'b0;
-                   
+				   
+                   bandwidth_discard_flag <= 1'b0;
+				   
 		           out_ebm_ID        <= 8'b0;
 		           out_ebm_ID_wr     <= 1'b0;
 		           

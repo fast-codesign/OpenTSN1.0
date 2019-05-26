@@ -29,22 +29,21 @@
 module data_ctrl (
    input wire       clk,
    input wire       rst_n,
-   
+///////pkt form ibm ////////////////////   
    input wire       [133:0]in_data_ctrl_data,
    input wire       in_data_ctrl_data_wr,
-   
+//////write address from addr_mgmt ////   
    input wire       [10:0]addr2data_waddr,
    input wire       addr2data_waddr_wr,
-   
+//////read  address from addr_mgmt ////      
    input wire       [10:0]addr2data_raddr,
    input wire       addr2data_raddr_wr,
-   
+/////transmit pkt to ebm//////////////   
    output reg       [133:0]out_data_cache_data,
    output reg       out_data_cache_data_wr,
    output reg       out_data_cache_valid,
    output reg       out_data_cache_valid_wr
 );
-
 reg           [10:0]data2ram_waddr;
 reg           ram_wr;
 reg           [133:0]ram_din_data;
@@ -54,14 +53,11 @@ reg           ram_rd;
 wire          [133:0]ram_dout_data;
 
 reg           [4:0]len;
-
-
-///////////////////////////////////write///////////////////////////////////////
+/////////write//////////////////////
 reg           [1:0]pkt_write_state;
 localparam     W_IDLE_S = 2'd0,
                FIRST_S  = 2'd1,
-			   WRITE_S  = 2'd2;
-			   
+			   WRITE_S  = 2'd2;			   
 always @(posedge clk or negedge rst_n) begin 
     if(rst_n == 1'b0) begin 
        ram_wr           <= 1'b0;
@@ -69,23 +65,17 @@ always @(posedge clk or negedge rst_n) begin
 	   pkt_write_state  <= W_IDLE_S;
     end
 	else begin
-	   case(pkt_write_state)
-		  		  
+	   case(pkt_write_state)		  		  
 		  W_IDLE_S:begin
 		      ram_wr           <= 1'b0;
-		      if(addr2data_waddr_wr == 1'b1)begin
-			    // data2ram_waddr   <= addr2data_waddr;
-				//  ram_wr           <= 1'b1;
-				//  ram_din_data     <= in_data_ctrl_data;
-				   
+		      if(addr2data_waddr_wr == 1'b1)begin				   
 				   pkt_write_state  <= FIRST_S;
 			  end
 			  else begin
 			       pkt_write_state  <= W_IDLE_S;			       
 			  end
-		  end
-		  
-		  FIRST_S:begin
+		  end		  
+		  FIRST_S:begin//write pkt to RAM and address is write base_addr
 		       if(in_data_ctrl_data_wr == 1'b1)begin
 			   		ram_din_data     <= in_data_ctrl_data;
 				    ram_wr           <= 1'b1;
@@ -98,9 +88,8 @@ always @(posedge clk or negedge rst_n) begin
 					
 					pkt_write_state  <= FIRST_S;				
 			   end
-		  end
-		  
-		  WRITE_S:begin
+		  end		  
+		  WRITE_S:begin//write pkt to RAM and address is address+1
 		       ram_wr           <= 1'b1;
                ram_din_data     <= in_data_ctrl_data;
 		       if(in_data_ctrl_data[133:132] == 2'b10)begin
@@ -113,8 +102,7 @@ always @(posedge clk or negedge rst_n) begin
 					
 					pkt_write_state  <= WRITE_S;
 			   end
-		  end
-	  
+		  end	  
 		  default:begin    
                ram_wr           <= 1'b0;
 			   
@@ -123,19 +111,12 @@ always @(posedge clk or negedge rst_n) begin
 	  endcase
    end
 end
-
-
-///////////////////////////////////read///////////////////////////////////////
+//////////////read/////////////////////////////
 reg           [3:0]pkt_read_state;
 localparam     R_IDLE_S = 4'd0,
                WAIT0_S  = 4'd1,
 			   WAIT1_S  = 4'd2,
-			   WATI2_S  = 4'd3,
-			   READ_S   = 4'd4,
-			   DATA0_S  = 4'd5,
-			   DATA1_S  = 4'd6,
-			   WITE_1_S = 4'd7;
-			   
+			   READ_S   = 4'd3;		   
 always @(posedge clk or negedge rst_n) begin 
     if(rst_n == 1'b0) begin 
        ram_rd           <= 1'b0;
@@ -149,17 +130,15 @@ always @(posedge clk or negedge rst_n) begin
 	   pkt_read_state  <= R_IDLE_S;
     end
 	else begin
-	   case(pkt_read_state)
-		  		  
+	   case(pkt_read_state)		  		  
 		  R_IDLE_S:begin
 		      out_data_cache_data    <= 134'b0;
 		      out_data_cache_data_wr <= 1'b0;
 			  out_data_cache_valid   <= 1'b0;
 			  out_data_cache_valid_wr<= 1'b0;
 			  
-			  len              <= 5'h0;
-		      
-		      if(addr2data_raddr_wr == 1'b1)begin
+			  len              <= 5'h0;		      
+		      if(addr2data_raddr_wr == 1'b1)begin//read pkt from RAM and address is read base_addr
 			       data2ram_raddr   <= addr2data_raddr;
 				   ram_rd           <= 1'b1;
 				   
@@ -168,108 +147,52 @@ always @(posedge clk or negedge rst_n) begin
 			  else begin
 			       ram_rd           <= 1'b0;
 				   
-			       pkt_read_state  <= R_IDLE_S;
-			       
+			       pkt_read_state  <= R_IDLE_S;			       
 			  end
-		  end
-		  
-		  WAIT0_S:begin
+		  end		  
+		  WAIT0_S:begin//dealy,because RAM read out data need delay two frame
               ram_rd           <= 1'b1;
 			  data2ram_raddr   <= data2ram_raddr + 10'h1;
 			  
 			  pkt_read_state   <= WAIT1_S;
-		  end
-		  
+		  end		  
 		  WAIT1_S:begin
 		  
               ram_rd              <= 1'b1;
 			  data2ram_raddr      <= data2ram_raddr + 10'h1;			 			  
 			  
-			  pkt_read_state  <= WATI2_S;
-		  end
-		  
-		  WATI2_S:begin
-		      ram_rd              <= 1'b1;
-              data2ram_raddr      <= data2ram_raddr + 10'h1;             
-              
-              out_data_cache_data    <= ram_dout_data;
-              out_data_cache_data_wr <= 1'b1;
-		  
-		      len              <= ram_dout_data[107:100] + (|ram_dout_data[99:96]) - 5'd4;
-		      
-		      pkt_read_state  <= READ_S;
-		  end
-		  
-		  READ_S:begin
-		      out_data_cache_data    <= ram_dout_data;
-			  out_data_cache_data_wr <= 1'b1;
-		      if(len == 5'h0)begin		  
-				  ram_rd           <= 1'b1;
+			  pkt_read_state  <= READ_S;
+		  end		  		  
+		  READ_S:begin//ensure all pkt read through len
+		      out_data_cache_data    <= ram_dout_data;			  
+		      if(out_data_cache_data[133:132] == 2'b10)begin		  
+				  ram_rd           <= 1'b0;
 				  data2ram_raddr   <= 10'h0;
+				  out_data_cache_valid   <= 1'b0;
+				  out_data_cache_valid_wr<= 1'b0;
+				  out_data_cache_data_wr <= 1'b0;
 				  
-				  len              <= 5'h0;
-				  
-				  pkt_read_state  <= DATA0_S;
+				  pkt_read_state   <= R_IDLE_S;
 			  end
-			  else if(len == 5'h1)begin				  
+			  else if(ram_dout_data[133:132] == 2'b10)begin
 				  ram_rd           <= 1'b1;
-			      data2ram_raddr   <= data2ram_raddr + 10'h1;
-				  
-				  len  <= len - 5'd1;
-				  
-				  pkt_read_state  <= READ_S;			  
-			  end	
-              else begin				  
+                  data2ram_raddr   <= data2ram_raddr + 10'h1;
+                  out_data_cache_valid   <= 1'b1;
+                  out_data_cache_valid_wr<= 1'b1;
+                  out_data_cache_data_wr <= 1'b1;  
+                  
+                  pkt_read_state   <= READ_S;   			  
+			  end
+			  else begin
 				  ram_rd           <= 1'b1;
-			      data2ram_raddr   <= data2ram_raddr + 10'h1;
+				  data2ram_raddr   <= data2ram_raddr + 10'h1;
+				  out_data_cache_valid   <= 1'b0;
+				  out_data_cache_valid_wr<= 1'b0;
+				  out_data_cache_data_wr <= 1'b1;				  
 				  
-				  len  <= len - 5'd1;
-				  
-				  pkt_read_state  <= READ_S;
-              end			  
-		  end
-		  
-		  DATA0_S:begin
-		      len              <= 5'h0;
-		      ram_rd              <= 1'b0;
-		      
-		      out_data_cache_data    <= ram_dout_data;
-			  out_data_cache_data_wr <= 1'b1;
-			  
-			  data2ram_raddr   <= 10'h0;
-			  
-			  pkt_read_state  <= DATA1_S;
-		          
-		  end
-
-          DATA1_S:begin
-		      out_data_cache_data    <= ram_dout_data;
-			  out_data_cache_data_wr <= 1'b1;
-			  out_data_cache_valid   <= 1'b1;
-			  out_data_cache_valid_wr<= 1'b1;
-			  
-			  pkt_read_state  <= WITE_1_S;		  
-          end		
-          
-         WITE_1_S:begin
-              if(addr2data_raddr_wr  == 1'b0)begin
-	            out_data_cache_data    <= 134'b0;
-                out_data_cache_data_wr <= 1'b0;
-                out_data_cache_valid   <= 1'b0;
-                out_data_cache_valid_wr<= 1'b0;   
-                
-                pkt_read_state  <= R_IDLE_S;		
-              end
-              else begin
- 	            out_data_cache_data    <= 134'b0;
-                out_data_cache_data_wr <= 1'b0;
-                out_data_cache_valid   <= 1'b0;
-                out_data_cache_valid_wr<= 1'b0;   
-                
-                pkt_read_state  <= WITE_1_S;                 
-              end     
-         end  
-                     			  
+				  pkt_read_state   <= READ_S;
+			  end
+		  end		                       			  
 		  default:begin    
               ram_rd           <= 1'b0;
               len              <= 5'h0;
@@ -280,11 +203,10 @@ always @(posedge clk or negedge rst_n) begin
 	          out_data_cache_valid_wr<= 1'b0;
 	   
 	          pkt_read_state  <= R_IDLE_S;
-		 end
+		  end
 	  endcase
    end
 end
-
 ram_134_2048 data_ram
 (      
     .clka(clk),
@@ -301,21 +223,20 @@ ram_134_2048 data_ram
     .dinb(32'b0),
     .doutb(ram_dout_data)    
 );
-
 endmodule
 /*********************
 .clk(),
 .rst_n(),
-
+///////pkt form ibm ////////////////////   
 .in_data_ctrl_data(),
 .in_data_ctrl_data_wr(),
-
+//////write address from addr_mgmt ////   
 .addr2data_waddr(),
 .addr2data_waddr_wr(),
-
+//////read  address from addr_mgmt ////     
 .addr2data_raddr(),
 .addr2data_raddr_wr(),
-
+/////transmit pkt to ebm//////////////   
 .out_data_cache_data(),
 .out_data_cache_data_wr(),
 .out_data_cache_valid(),

@@ -16,28 +16,29 @@ module eos#(
 input	wire			clk,
 input	wire			rst_n,
     
-//receive from LCM module
+//receive from LCM
 input	wire			 in_eos_time_slot_flag,
 input	wire     [31:0] in_eos_rate_limit,                   
-//transmit to LCM module
-output	wire     [4:0]  out_eos_q0_used_cnt,
-output	wire     [4:0]  out_eos_q1_used_cnt,
-output	wire     [4:0]  out_eos_q2_used_cnt, 
-output	wire     [4:0]  out_eos_q3_used_cnt,
+//transmit to LCM
+output	wire     [5:0]  out_eos_q0_used_cnt,
+output	wire     [5:0]  out_eos_q1_used_cnt,
+output	wire     [5:0]  out_eos_q2_used_cnt, 
+output	wire     [5:0]  out_eos_q3_used_cnt,
 output	reg      [63:0] out_eos_mdin_cnt, 
 output	reg      [63:0] out_eos_mdout_cnt, 
 
-//receive from IBM module
+//receive from IBM
 input	wire	 [23:0] in_eos_md,
 input	wire            in_eos_md_wr,  
 
-//receive from UDO module
+//receive from UDO
 input	wire     [7:0]  pktout_usedw_0,
 input	wire     [7:0]  pktout_usedw_1,           
 
-//receive from EBM module
+//receive from EBM
 input	wire	         in_eos_pkt_valid,
-//transmit to EBM module
+//transmit to EBM
+output	wire            out_eos_bandwidth_discard,
 output	wire      [7:0] out_eos_md, 
 output	wire            out_eos_md_wr
 
@@ -165,6 +166,8 @@ gc gc_inst(
 .in_gc_pkt_len(mb2gc_pkt_len),
 //receive from EBM
 .in_gc_pkt_valid(in_eos_pkt_valid),
+//transmit to EBM
+.out_gc_bandwidth_discard(out_eos_bandwidth_discard),
 //receive from UDO
 .pktout_usedw_0(pktout_usedw_0),
 .pktout_usedw_1(pktout_usedw_1),
