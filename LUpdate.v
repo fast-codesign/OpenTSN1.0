@@ -91,7 +91,8 @@ reg [2:0] lupdate_state;
 
 localparam IDLE_S = 3'b001,
 		UPDATE_S = 3'b010,
-		TRAN_S = 3'b011;
+		TRAN_S = 3'b011,
+		DISC_S = 3'b100;
 
 
 
@@ -131,6 +132,15 @@ always @(posedge clk or negedge rst_n) begin
 						lupdate_state <= UPDATE_S;
 					end
 
+					else if(in_lu_data[79:32] == in_local_mac_id)begin
+						out_lu_data <= 134'b0;
+						out_lu_data_wr <= 1'b0;
+						out_lu_data_valid <= 1'b0;
+						out_lu_data_valid_wr <= 1'b0;
+
+						lupdate_state <= DISC_S;
+					end
+
 					else begin
 						out_lu_data <= lu_data_2;
 						out_lu_data_wr <= lu_data_wr_2;
@@ -148,6 +158,25 @@ always @(posedge clk or negedge rst_n) begin
 					out_lu_data_valid_wr <= 1'b0;
 
 					lupdate_state <= IDLE_S;
+				end
+			end
+
+			DISC_S:begin
+				if(in_lu_data_wr == 1'b1 && in_lu_data[133:132] == 2'b10)begin
+					out_lu_data <= 134'b0;
+					out_lu_data_wr <= 1'b0;
+					out_lu_data_valid <= 1'b0;
+					out_lu_data_valid_wr <= 1'b0;
+
+					lupdate_state <= IDLE_S;
+				end
+
+				else begin
+					out_lu_data <= 134'b0;
+					out_lu_data_wr <= 1'b0;
+					out_lu_data_valid <= 1'b0;
+					out_lu_data_valid_wr <= 1'b0;
+
 				end
 			end
 

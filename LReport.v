@@ -115,6 +115,7 @@ localparam IDLE_S = 3'b001,
 		Set1_S = 3'b110,
 		Set2_S = 3'b111,
 		Set3_S = 3'b100;
+
 always @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		// reset
@@ -164,6 +165,7 @@ always @(posedge clk or negedge rst_n) begin
 						beacon_report_cycle <= 5'b0;
 						lreport_state <= TRAN_S;
 					end
+
 					else begin
 						report_flag_slave <= report_flag_master;
 						out_lr_data <= 134'b0;
@@ -231,6 +233,8 @@ always @(posedge clk or negedge rst_n) begin
 				out_lr_data_wr <= lr_data_wr;
 				out_lr_data_valid <= lr_data_valid;
 				out_lr_data_valid_wr <= lr_data_valid_wr;
+
+				lreport_state <= IDLE_S;
 			end
 
 			TRAN_S: begin
@@ -389,7 +393,7 @@ always @(posedge clk or negedge rst_n) begin
 		report_flag_master <= 1'b0;
 	end
 	else begin
-		if(precision_time[31:0] == 32'hffff) begin
+		if(precision_time[29:0] == 32'hffff) begin
 			report_flag_master <= ~report_flag_master;
 		end
 

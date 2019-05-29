@@ -45,8 +45,8 @@ module um #(
     input [31:0] ctrl_addr,//ctrl2um_addr,
     output reg [31:0] ctrl_dataout, //um2ctrl_data_out
     output reg [31:0] um_timer
- 
 );
+
 
 
 //lcm to esw//
@@ -108,18 +108,22 @@ wire [63:0]eos_mdin_cnt;
 wire [63:0]eos_mdout_cnt;
 wire [31:0]token_bucket_para;
 
+assign local_mac_addr = 48'b1;
+//assign direct_mac_addr = 48'b2;
+assign direction = 1'b1;
+
 lcm lcm(
 .clk(clk),
 .rst_n(rst_n),
 //um signals
 .in_lcm_data(pktin_data),
 .in_lcm_data_wr(pktin_data_wr),
-.in_lcm_data_valid(pktin_valid),
-.in_lcm_data_valid_wr(pktin_valid_wr),
+.in_lcm_data_valid(pktin_data_valid),
+.in_lcm_data_valid_wr(pktin_data_valid_wr),
 .pktin_ready(pktin_ready),
 .precision_time(precision_time),
 
-.in_local_mac_id(local_mac_id),
+.in_local_mac_id(local_mac_addr),
 
 //esw signals 
 .out_lcm_data_wr(lcm2esw_data_wr),
@@ -256,7 +260,7 @@ eos eos(
 .out_eos_bandwidth_discard(in_ebm_bandwidth_discard),
 .out_eos_md(out_eos_tsn_md),
 .out_eos_md_wr(out_eos_tsn_md_wr),
-.in_eos_pkt_valid(pktout_valid)
+.in_eos_pkt_valid(pktout_data_valid)
 );
 
 ebm ebm_inst(
@@ -273,7 +277,7 @@ ebm ebm_inst(
 .out_ebm_data(pktout_data),
 .out_ebm_data_wr(pktout_data_wr),
 .out_ebm_valid(pktout_valid),
-.out_ebm_valid_wr(pktout_valid_wr),
+.out_ebm_valid_wr(pktout_data_valid_wr),
 
 .in_ebm_bandwidth_discard(in_ebm_bandwidth_discard),
 .in_ebm_md(out_eos_tsn_md),
