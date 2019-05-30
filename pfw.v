@@ -125,6 +125,7 @@ always @(posedge clk or negedge rst_n) begin
 					else begin
 					end
 				end
+				
 				D_COM_S:begin
 					if(in_pfw_data_wr == 1'b1)begin
 						out_pfw_data     <= delay1;
@@ -162,6 +163,7 @@ always @(posedge clk or negedge rst_n) begin
 						pfw_state <= D_COM_S;
 					end
 				end
+
 				TRANS_S:begin
 					out_pfw_data     <= delay1;
 					out_pfw_data_wr  <= 1'h1;

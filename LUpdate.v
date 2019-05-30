@@ -132,7 +132,7 @@ always @(posedge clk or negedge rst_n) begin
 						lupdate_state <= UPDATE_S;
 					end
 
-					else if(in_lu_data[79:32] == in_local_mac_id)begin
+					else if(in_lu_data[79:32] == in_local_mac_id && lu_data_2[127] == 1'b0)begin
 						out_lu_data <= 134'b0;
 						out_lu_data_wr <= 1'b0;
 						out_lu_data_valid <= 1'b0;
