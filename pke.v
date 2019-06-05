@@ -28,8 +28,8 @@ input     wire    clk,
 input     wire    rst_n,
 
 //////////pkt from LCM ////////////////
-input     wire    [133:0]in_pke_data,
-input     wire    in_pke_data_wr,
+(*mark_debug="TRUE"*)input     wire    [133:0]in_pke_data,
+(*mark_debug="TRUE"*)input     wire    in_pke_data_wr,
 input     wire    in_pke_valid,
 input     wire    in_pke_valid_wr,
   
@@ -50,7 +50,7 @@ reg       [133:0]delay0;
 reg       [133:0]delay1;
 
 /////////state machine/////////////
-reg       [1:0]pke_state;
+(*mark_debug="TRUE"*)reg       [1:0]pke_state;
 
 localparam  IDLE_S   = 2'd0,
             MD1      = 2'd1,

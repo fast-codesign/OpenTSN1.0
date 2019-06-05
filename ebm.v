@@ -31,16 +31,16 @@ input  wire   clk,
 input  wire   rst_n,
 	
 //input pkt from data_cache
-input  wire   [133:0]in_ebm_data,
-input  wire   in_ebm_data_wr,
+(*mark_debug="TRUE"*)input  wire   [133:0]in_ebm_data,
+(*mark_debug="TRUE"*)input  wire   in_ebm_data_wr,
 input  wire   in_ebm_valid,
 input  wire   in_ebm_valid_wr,
 output  reg   [7:0]out_ebm_ID,
 output  reg   out_ebm_ID_wr,
 	
 //transport to next module
-output  reg   [133:0]out_ebm_data,
-output  reg   out_ebm_data_wr,
+(*mark_debug="TRUE"*)output  reg   [133:0]out_ebm_data,
+(*mark_debug="TRUE"*)output  reg   out_ebm_data_wr,
 output  reg   out_ebm_valid,
 output  reg   out_ebm_valid_wr,
 
@@ -50,9 +50,9 @@ input  wire   [7:0]in_ebm_md,
 input  wire   in_ebm_md_wr
 );
 
-reg           bandwidth_discard_flag;
+(*mark_debug="TRUE"*)reg           bandwidth_discard_flag;
 
-reg      [1:0]ebm_state;
+(*mark_debug="TRUE"*)reg      [1:0]ebm_state;
 localparam    IDLE_S   =2'd0,
 			  WITE_S   =2'd1,
 		      TRAN_S   =2'd2;

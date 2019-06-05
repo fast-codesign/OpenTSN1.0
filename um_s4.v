@@ -1,54 +1,39 @@
-module um #(
-    parameter    PLATFORM = "Xilinx"
-)(
-    input clk,
-    input [63:0] um_timestamp,
-    input rst_n,
-    
-//cpu or port
-    input  pktin_data_wr,
-    input  [133:0] pktin_data,
-    input  pktin_data_valid,
-    input  pktin_data_valid_wr,
-    output pktin_ready,//pktin_ready = um2port_alf
-    
-    output pktout_data_wr,
-    output [133:0] pktout_data,
-    output pktout_data_valid,
-    output pktout_data_valid_wr,
-    input pktout_ready,//pktout_ready = port2um_alf    
+module um(
+input  wire  clk,
+input  wire  rst_n,
 
-//control path
-    input [133:0] dma2um_data,
-    input dma2um_data_wr,
-    output um2dma_ready,
-    
-    output [133:0] um2dma_data,
-    output um2dma_data_wr,
-    input dma2um_ready,
-    
-//to match
-    output um2me_key_wr,
-    output um2me_key_valid,
-    output [511:0] um2match_key,
-    input um2me_ready,//um2me_ready = ~match2um_key_alful
-//from match
-    input me2um_id_wr,
-    input [15:0] match2um_id,
-    output um2match_gme_alful,
-//localbus
-    input ctrl_valid,  
-    input ctrl2um_cs_n,
-    output reg um2ctrl_ack_n,
-    input ctrl_cmd,//ctrl2um_rd_wr,//0 write 1:read
-    input [31:0] ctrl_datain,//ctrl2um_data_in,
-    input [31:0] ctrl_addr,//ctrl2um_addr,
-    output reg [31:0] ctrl_dataout, //um2ctrl_data_out
-    output reg [31:0] um_timer
+input  wire  [7:0]pktout_usedw_0,
+input  wire  [7:0]pktout_usedw_1,
+
+input  wire  [133:0]pktin_data,
+input  wire  pktin_data_wr,
+input  wire  pktin_valid,
+input  wire  pktin_valid_wr,
+output wire  pktin_ready,
+
+input  wire  [47:0]precision_time,
+input  wire  [47:0]local_mac_id,
+
+output wire  [133:0]pktout_data_0,
+output wire  pktout_data_wr_0,
+output wire  pktout_valid_0,
+output wire  pktout_valid_wr_0,
+
+output wire  [133:0]pktout_data_1,
+output wire  pktout_data_wr_1,
+output wire  pktout_valid_1,
+output wire  pktout_valid_wr_1,
+
+output wire [133:0]port2_pktout_data,
+output wire port2_pktout_data_wr,
+output wire port2_pktout_valid,
+output wire port2_pktout_valid_wr,
+
+output wire [133:0]port3_pktout_data,
+output wire port3_pktout_data_wr,
+output wire port3_pktout_valid,
+output wire port3_pktout_valid_wr
 );
-
-
-
 //lcm to esw//
 wire  [133:0]lcm2esw_data;
 wire  lcm2esw_data_wr;
@@ -64,7 +49,6 @@ wire  [23:0]tsn_md;
 wire  tsn_md_wr;
 wire [4:0]ibm2esw_bufm_ID;
 
-reg [47:0] precision_time;
 //ibm to data_cache//
 wire [133:0]out_ibm_data;
 wire out_ibm_data_wr;
@@ -108,22 +92,22 @@ wire [63:0]eos_mdin_cnt;
 wire [63:0]eos_mdout_cnt;
 wire [31:0]token_bucket_para;
 
-assign local_mac_addr = 48'b1;
-//assign direct_mac_addr = 48'b2;
-assign direction = 1'b1;
-
+wire in_goe_data_wr;
+wire [133:0] in_goe_data;
+wire in_goe_valid_wr;
+wire in_goe_valid;
 lcm lcm(
 .clk(clk),
 .rst_n(rst_n),
 //um signals
 .in_lcm_data(pktin_data),
 .in_lcm_data_wr(pktin_data_wr),
-.in_lcm_data_valid(pktin_data_valid),
-.in_lcm_data_valid_wr(pktin_data_valid_wr),
+.in_lcm_data_valid(pktin_valid),
+.in_lcm_data_valid_wr(pktin_valid_wr),
 .pktin_ready(pktin_ready),
 .precision_time(precision_time),
 
-.in_local_mac_id(local_mac_addr),
+.in_local_mac_id(local_mac_id),
 
 //esw signals 
 .out_lcm_data_wr(lcm2esw_data_wr),
@@ -175,15 +159,15 @@ esw esw(
 .out_esw_tsn_md_wr(tsn_md_wr),
 .bufm_ID_count(ibm2esw_bufm_ID),
 
-.out_esw2port_data2(),
-.out_esw2port_data_wr2(),
-.out_esw2port_valid2(),
-.out_esw2port_valid_wr2(),
+.out_esw2port_data2(port2_pktout_data),
+.out_esw2port_data_wr2(port2_pktout_data_wr),
+.out_esw2port_valid2(port2_pktout_valid),
+.out_esw2port_valid_wr2(port2_pktout_valid_wr),
 
-.out_esw2port_data3(),
-.out_esw2port_data_wr3(),
-.out_esw2port_valid3(),
-.out_esw2port_valid_wr3(),
+.out_esw2port_data3(port3_pktout_data),
+.out_esw2port_data_wr3(port3_pktout_data_wr),
+.out_esw2port_valid3(port3_pktout_valid),
+.out_esw2port_valid_wr3(port3_pktout_valid_wr),
 
 .direction(direction),
 .local_mac_addr(local_mac_addr),
@@ -254,13 +238,13 @@ eos eos(
 .in_eos_md(out_ibm_md),
 .in_eos_md_wr(out_ibm_md_wr),
 
-.pktout_usedw_0(8'b1),
-.pktout_usedw_1(8'b1), 
+.pktout_usedw_0(pktout_usedw_0),
+.pktout_usedw_1(pktout_usedw_1), 
 
 .out_eos_bandwidth_discard(in_ebm_bandwidth_discard),
 .out_eos_md(out_eos_tsn_md),
 .out_eos_md_wr(out_eos_tsn_md_wr),
-.in_eos_pkt_valid(pktout_data_valid)
+.in_eos_pkt_valid(in_goe_valid)
 );
 
 ebm ebm_inst(
@@ -274,25 +258,41 @@ ebm ebm_inst(
 .out_ebm_ID(in_data_cache_ID),
 .out_ebm_ID_wr(in_data_cache_ID_wr),
 
-.out_ebm_data(pktout_data),
-.out_ebm_data_wr(pktout_data_wr),
-.out_ebm_valid(pktout_valid),
-.out_ebm_valid_wr(pktout_data_valid_wr),
+.out_ebm_data(in_goe_data),
+.out_ebm_data_wr(in_goe_data_wr),
+.out_ebm_valid(in_goe_valid),
+.out_ebm_valid_wr(in_goe_valid_wr),
 
 .in_ebm_bandwidth_discard(in_ebm_bandwidth_discard),
 .in_ebm_md(out_eos_tsn_md),
 .in_ebm_md_wr(out_eos_tsn_md_wr)  
 );
 
-always@(posedge clk or negedge rst_n)begin
-    if(!rst_n)begin
-        precision_time <= 48'b0;
-    end
-    
-    else begin
-        precision_time <= precision_time + 1'b1;
-    end
-end
+
+ goe goe(
+
+.clk(clk),
+.rst_n(rst_n),
+	
+//uda pkt waiting for transmit
+.in_goe_data_wr(in_goe_data_wr),
+.in_goe_data(in_goe_data),
+.in_goe_valid_wr(in_goe_valid_wr),
+.in_goe_valid(in_goe_valid),
+	
+//pkt waiting for transmit
+.pktout_data_wr_0(pktout_data_wr_0),
+.pktout_data_0(pktout_data_0),
+.pktout_data_valid_wr_0(pktout_valid_wr_0),
+.pktout_data_valid_0(pktout_valid_0),
+
+    //pkt waiting for transmit
+.pktout_data_wr_1(pktout_data_wr_1),
+.pktout_data_1(pktout_data_1),
+.pktout_data_valid_wr_1(pktout_valid_wr_1),
+.pktout_data_valid_1(pktout_valid_1)
+);
+
 endmodule
 
 

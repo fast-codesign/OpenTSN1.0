@@ -29,14 +29,14 @@ input     wire    clk,
 input     wire    rst_n,
 
 //////////pkt from LCM ////////////////
-input     wire    [133:0]in_esw_data,
-input     wire    in_esw_data_wr,
+(*mark_debug="TRUE"*)input     wire    [133:0]in_esw_data,
+(*mark_debug="TRUE"*)input     wire    in_esw_data_wr,
 input     wire    in_esw_valid,
 input     wire    in_esw_valid_wr,
   
 /////////pkt and out_esw_tsn_md to IBM ///////  
-output    wire    [133:0]out_esw_data,
-output    wire    out_esw_data_wr,
+(*mark_debug="TRUE"*)output    wire    [133:0]out_esw_data,
+(*mark_debug="TRUE"*)output    wire    out_esw_data_wr,
 output    wire    out_esw_valid,
 output    wire    out_esw_valid_wr,
 output    wire    [23:0]out_esw_tsn_md,

@@ -85,8 +85,8 @@ module lreport #(
 
 //local_mac_addr = 00-06-06-02-00-00-00-ID
 
-localparam cnc_mac_addr = 48'h010203040506;  //CNC鑺傜偣mac鍦板�?
-//parameter time_inteval = 20'hFFFFF;  //鍚屾鍛ㄦ湡涓�8ms宸﹀�?  2^20 us
+localparam cnc_mac_addr = 48'h010203040506;  //CNC鑺傜偣mac鍦板潿
+//parameter time_inteval = 20'hFFFFF;  //鍚屾鍛ㄦ湡涓?8ms宸﹀彿  2^20 us
 
 
 reg [47:0] time_stamp_rec; //record the accurate timestamp.
@@ -115,7 +115,6 @@ localparam IDLE_S = 3'b001,
 		Set1_S = 3'b110,
 		Set2_S = 3'b111,
 		Set3_S = 3'b100;
-
 always @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		// reset
@@ -165,7 +164,6 @@ always @(posedge clk or negedge rst_n) begin
 						beacon_report_cycle <= 5'b0;
 						lreport_state <= TRAN_S;
 					end
-
 					else begin
 						report_flag_slave <= report_flag_master;
 						out_lr_data <= 134'b0;
@@ -233,7 +231,7 @@ always @(posedge clk or negedge rst_n) begin
 				out_lr_data_wr <= lr_data_wr;
 				out_lr_data_valid <= lr_data_valid;
 				out_lr_data_valid_wr <= lr_data_valid_wr;
-
+				
 				lreport_state <= IDLE_S;
 			end
 
@@ -266,7 +264,7 @@ always @(posedge clk or negedge rst_n) begin
 					4'd0:begin
 						out_lr_data_wr <= 1'b1;
 						//smid == 8'd128;
-						out_lr_data <= {2'b01,4'b0,1'b0,1'b0,6'b0,2'b0,6'b0,16'd208, 8'd128, 8'd1, 80'b0};
+						out_lr_data <= {2'b01,4'b0,1'b1,1'b0,6'b0,2'b0,6'b0,16'd208, 8'd128, 8'd1, 80'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -287,7 +285,7 @@ always @(posedge clk or negedge rst_n) begin
 							beacon_update_slave <= beacon_update_master;
 						end
 						else begin
-							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'he, 8'b0};
+							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'hf, 8'b0};
 						end
 					end
 					4'd3:begin
@@ -393,7 +391,7 @@ always @(posedge clk or negedge rst_n) begin
 		report_flag_master <= 1'b0;
 	end
 	else begin
-		if(precision_time[29:0] == 32'hffff) begin
+		if(precision_time[29:0] == 30'h0) begin
 			report_flag_master <= ~report_flag_master;
 		end
 

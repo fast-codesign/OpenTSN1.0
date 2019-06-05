@@ -22,10 +22,12 @@
 //      modifier: 
 //      description: 
 ///////////////////////////////////////////////////////////////// 
+
 module goe #(
-    parameter   PLATFORM = "Xilinx",
-	            LMID = 8'd5
-    )(
+	parameter PLATFORM = "xilinx",
+			  LMID = 8'd5
+	)(
+
     input clk,
     input rst_n,
 	
@@ -36,78 +38,116 @@ module goe #(
     input in_goe_valid,
 	
 //pkt waiting for transmit
-    output reg pktout_data_wr,
-    output reg [133:0] pktout_data,
-    output reg pktout_data_valid_wr,
-    output reg pktout_data_valid
-	
+    output reg pktout_data_wr_0,
+    output reg [133:0] pktout_data_0,
+    output reg pktout_data_valid_wr_0,
+    output reg pktout_data_valid_0,
+
+    //pkt waiting for transmit
+    output reg pktout_data_wr_1,
+    output reg [133:0] pktout_data_1,
+    output reg pktout_data_valid_wr_1,
+    output reg pktout_data_valid_1
 );
 
-//***************************************************
-//        Intermediate variable Declaration
-//***************************************************
-//all wire/reg/parameter variable 
-//should be declare below here 
-
-//state
-reg [1:0]goe_state;
-
-localparam  IDLE_S = 2'b01,
-			Trans_S = 2'b10;
+reg [1:0] goe_state;
+localparam  IDLE_S = 2'b0,
+			Port0_S = 2'b10,
+			Port1_S = 2'b11;
 
 always @(posedge clk or negedge rst_n) begin
-	if(rst_n == 1'b0) begin
-		pktout_data <= 134'b0;
-		pktout_data_wr <= 1'b0;
-		pktout_data_valid <= 1'b0;
-		pktout_data_valid_wr <= 1'b0;
+	if (!rst_n) begin
+		pktout_data_0 <= 134'b0;
+		pktout_data_wr_0 <= 1'b0;
+		pktout_data_valid_0 <= 1'b0;
+		pktout_data_valid_wr_0 <= 1'b0;
+
+
+		pktout_data_1 <= 134'b0;
+		pktout_data_wr_1 <= 1'b0;
+		pktout_data_valid_1 <= 1'b0;
+		pktout_data_valid_wr_1 <= 1'b0;
 
 		goe_state <= IDLE_S;
 	end
-
 	else begin
 		case(goe_state)
 			IDLE_S:begin
-				if(in_goe_data_wr == 1'b1) begin
-					pktout_data <= in_goe_data;
-					pktout_data_wr <= in_goe_data_wr;
-					pktout_data_valid <= in_goe_data_valid;
-					pktout_data_valid_wr <= in_goe_data_valid_wr;
+				if(in_goe_data_wr == 1'b1 && in_goe_data[117:112] == 6'b0)begin
+					pktout_data_0 <= in_goe_data;
+					pktout_data_wr_0 <= in_goe_data_wr;
+					pktout_data_valid_0 <= in_goe_data_wr;
+					pktout_data_valid_wr_0 <= in_goe_valid_wr;
 
-					goe_state <= Trans_S;
+					goe_state <= Port0_S;
+				end
+
+				else if(in_goe_data_wr == 1'b1 && in_goe_data[117:112] == 6'b1)begin
+					pktout_data_1 <= in_goe_data;
+					pktout_data_wr_1 <= in_goe_data_wr;
+					pktout_data_valid_1 <= in_goe_data_wr;
+					pktout_data_valid_wr_1 <= in_goe_valid_wr;
+
+					goe_state <= Port1_S;
 				end
 
 				else begin
-					pktout_data <= 134'b0;
-					pktout_data_wr <= 1'b0;
-					pktout_data_valid <= 1'b0;
-					pktout_data_valid_wr <= 1'b0;
+					pktout_data_0 <= 134'b0;
+					pktout_data_wr_0 <= 1'b0;
+					pktout_data_valid_0 <= 1'b0;
+					pktout_data_valid_wr_0 <= 1'b0;
+
+
+					pktout_data_1 <= 134'b0;
+					pktout_data_wr_1 <= 1'b0;
+					pktout_data_valid_1 <= 1'b0;
+					pktout_data_valid_wr_1 <= 1'b0;
 
 					goe_state <= IDLE_S;
 				end
 			end
 
-			Trans_S: begin
-				if(in_goe_data[133:132] == 2'b10) begin
-					pktout_data <= in_goe_data;
-					pktout_data_wr <= in_goe_data_wr;
-					pktout_data_valid <= in_goe_data_valid;
-					pktout_data_valid_wr <= in_goe_data_valid_wr;
+			Port0_S: begin
+				if(in_goe_data_wr == 1'b1 && in_goe_data[133:132] == 2'b10)begin
+					pktout_data_0 <= in_goe_data;
+					pktout_data_wr_0 <= in_goe_data_wr;
+					pktout_data_valid_0 <= in_goe_data_wr;
+					pktout_data_valid_wr_0 <= in_goe_valid_wr;
 
 					goe_state <= IDLE_S;
 				end
-				
-				else begin
-					pktout_data <= in_goe_data;
-					pktout_data_wr <= in_goe_data_wr;
-					pktout_data_valid <= in_goe_data_valid;
-					pktout_data_valid_wr <= in_goe_data_valid_wr;
 
-					goe_state <= Trans_S;
+				else begin
+					pktout_data_0 <= in_goe_data;
+					pktout_data_wr_0 <= in_goe_data_wr;
+					pktout_data_valid_0 <= in_goe_data_wr;
+					pktout_data_valid_wr_0 <= in_goe_valid_wr;
+
+					goe_state <= Port0_S;
+				end
+			end
+
+			Port1_S: begin
+				if(in_goe_data_wr == 1'b1 && in_goe_data[133:132] == 2'b10)begin
+					pktout_data_1 <= in_goe_data;
+					pktout_data_wr_1 <= in_goe_data_wr;
+					pktout_data_valid_1 <= in_goe_data_wr;
+					pktout_data_valid_wr_1 <= in_goe_valid_wr;
+
+					goe_state <= IDLE_S;
+				end
+
+				else begin
+					pktout_data_1 <= in_goe_data;
+					pktout_data_wr_1 <= in_goe_data_wr;
+					pktout_data_valid_1 <= in_goe_data_wr;
+					pktout_data_valid_wr_1 <= in_goe_valid_wr;
+
+					goe_state <= Port1_S;
 				end
 			end
 		endcase
+		
 	end
 end
- 	   
-endmodule                
+endmodule			
