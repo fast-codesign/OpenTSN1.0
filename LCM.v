@@ -33,7 +33,7 @@ module lcm #(
 	input in_lcm_data_wr,
 	input in_lcm_data_valid,
 	input in_lcm_data_valid_wr,
-	output pktin_ready,
+	(*mark_debug="TRUE"*)output pktin_ready,
 	input [47:0] precision_time,
 
 	input [47:0] in_local_mac_id,
@@ -99,7 +99,7 @@ reg [15:0] time_slot_cnt;  //used to reset every 0x7a12 cycles.
 
 //---------------reverse time slot for CQF---------------//
 always @(posedge clk or negedge rst_n) begin
-	//如何判断0xH7A12的整数倍
+	//濡備綍鍒ゆ柇0xH7A12鐨勬暣鏁板??
 	if(!rst_n) begin
 		time_slot_cnt <= 16'h0;
 		time_slot_flag <= 1'b0;
@@ -139,6 +139,7 @@ lreport #(
 .direction(out_direction),
 .token_bucket_para(out_token_bucket_para),
 .direct_mac_addr(out_direct_mac_addr),
+.time_slot_period(time_slot_period),
 
 .esw_pktin_cnt(esw_pktin_cnt),
 .esw_pktout_cnt(esw_pktout_cnt),

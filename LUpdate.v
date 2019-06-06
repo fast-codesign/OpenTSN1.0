@@ -99,6 +99,7 @@ localparam IDLE_S = 3'b001,
 always @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		// reset
+		lupdate_state <= 3'b0;
 		update_pkt_cnt <= 5'b0;
 		direction <= 1'b0;
 		token_bucket_para <= 32'd10;
