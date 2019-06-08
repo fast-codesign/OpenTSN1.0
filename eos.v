@@ -1,14 +1,29 @@
-/*========================================================================================================*\
-          Filename : eos.v,epipe output schedule
-            Author : peng jintao
-       Description : top module.
-	     Called by : 
-  Revision History : 5/16/2019 Revision 1.0  peng jintao
-                     mm/dd/yy
-           Company : 662
-============================================================================================================
-          Comments :
-\*========================================================================================================*/
+/////////////////////////////////////////////////////////////////
+// Copyright (c) 2018-2025 FAST Group, Inc.  All rights reserved.
+//*************************************************************
+//                     Basic Information
+//*************************************************************
+//Vendor: FAST Group.
+//Xperis URL://www.xperis.com.cn
+//FAST URL://www.fastswitch.org 
+//Target Device: Xilinx
+//Filename: eos.v
+//Version: 1.0
+//Author : FAST Group
+//*************************************************************
+//                     Module Description
+//*************************************************************
+// EOS:achieve cyclic queuing and forwarding(CQF);
+//     do traffic shaping for bandwidth reservation traffic;
+//     priority scheduling.
+//*************************************************************
+//                     Revision List
+//*************************************************************
+//	rn1: 
+//      date:  2019/05/16
+//      modifier: 
+//      description: 
+//////////////////////////////////////////////////////////////
 module eos#(
     parameter    PLATFORM = "xilinx"
 )(
@@ -53,7 +68,7 @@ wire [8:0]	qs2mb_md0;
 wire 		qs2mb_md0_wr;
 wire [8:0]	qs2mb_md1; 
 wire 		qs2mb_md1_wr;
-wire [15:0]	qs2mb_md2; 
+wire [19:0]	qs2mb_md2; 
 wire 		qs2mb_md2_wr;
 wire [8:0]	qs2mb_md3; 
 wire    	qs2mb_md3_wr;
@@ -61,7 +76,7 @@ wire    	qs2mb_md3_wr;
 //MB to GC
 wire [3:0]  mb2gc_md_outport;
 wire [3:0]  mb2gc_fifo_empty;
-wire [6:0]  mb2gc_pkt_len;
+wire [10:0]  mb2gc_pkt_len;
 
 //MB to TS
 wire        ts2mb_q0_rden;
@@ -198,5 +213,6 @@ ts ts_inst(
 );
 
 endmodule
+
 
 

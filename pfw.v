@@ -51,7 +51,6 @@ input     wire    direction
 );
 /////////register///////////////////
 reg       flag;//pkt from LCM or Local direct
-reg       ptp_flag;//ptp pkt drom Local direct
 reg       [133:0]delay0;
 reg       [133:0]delay1;
 /////////state machine/////////////
@@ -69,14 +68,11 @@ always @(posedge clk or negedge rst_n) begin
 	        out_pfw_data_wr  <= 1'h0;
 	        out_pfw_valid    <= 1'h0;
 	        out_pfw_valid_wr <= 1'h0;
-	        out_pfw_action   <= 11'h0;
-	        out_pfw_action_wr<= 1'h0;
+	        out_pfw_action           <= 11'h0;
+	        out_pfw_action_wr        <= 1'h0;
 			
 			delay0           <= 134'h0;
 			delay1           <= 134'h0;
-			
-			flag    		 <= 1'h1;
-			ptp_flag		 <= 1'b0;
 	  
 			pfw_state        <= IDLE_S;
 	  end
@@ -87,10 +83,9 @@ always @(posedge clk or negedge rst_n) begin
 					out_pfw_data_wr  <= 1'h0;
 					out_pfw_valid    <= 1'h0;
 					out_pfw_valid_wr <= 1'h0;
-					out_pfw_action   <= 11'h0;
-					out_pfw_action_wr<= 1'h0;	
-					ptp_flag		 <= 1'b0;
-					
+					out_pfw_action           <= 11'h0;
+					out_pfw_action_wr        <= 1'h0;	
+
 					delay1           <= 134'h0;
 					if(in_pfw_data_wr == 1'b1)begin
 						delay0       <= in_pfw_data;
@@ -116,12 +111,6 @@ always @(posedge clk or negedge rst_n) begin
 						if(in_pfw_key[53:6] == direct_mac_addr)begin
 							flag     <= 1'h1;
 							if(in_pfw_key[5:0] == 6'h2)begin//pkt form Local direct
-								if(in_pfw_pkttype == 3'h2)begin
-									ptp_flag <= 1'b1;
-								end
-								else begin
-									ptp_flag <= 1'b0;
-								end
 								pfw_state    <= D_COM_S;
 							end
 							else begin                      //updata
@@ -167,11 +156,7 @@ always @(posedge clk or negedge rst_n) begin
 							end
 						end
 						else begin
-							if(ptp_flag == 1'b1)begin//ptp pkt drom Local direct
-								out_pfw_action    <= {2'b00,in_pfw_pkttype,5'h0,~direction};
-								out_pfw_action_wr <= 1'h1;
-							end
-							else if(flag == 1'b1)begin //pkt from LCM or Local direct transmit to port direction
+							if(flag == 1'b1)begin //pkt from LCM or Local direct transmit to port direction
 								out_pfw_action    <= {2'b00,in_pfw_pkttype,5'h0,direction};
 								out_pfw_action_wr <= 1'h1;
 							end

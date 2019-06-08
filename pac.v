@@ -39,17 +39,17 @@ input     wire    [10:0]in_pac_action,
 input     wire    in_pac_action_wr,
 
 /////////pkt and tsn_md to ibm///////  
-output    reg     [133:0]out_pac_data,
-output    reg     out_pac_data_wr,
+(*mark_debug="TRUE"*)output    reg     [133:0]out_pac_data,
+(*mark_debug="TRUE"*)output    reg     out_pac_data_wr,
 output    reg     out_pac_valid,
 output    reg     out_pac_valid_wr,
-output    reg     [23:0]out_pac_tsn_md,
-output    reg     out_pac_tsn_md_wr,
-input     wire    [4:0]bufm_ID_count,
+(*mark_debug="TRUE"*)output    reg     [23:0]out_pac_tsn_md,
+(*mark_debug="TRUE"*)output    reg     out_pac_tsn_md_wr,
+(*mark_debug="TRUE"*)input     wire    [4:0]bufm_ID_count,
 
 ////////pkt to goe ///////////////
-output    reg     [133:0]out_pac2port_data2,
-output    reg     out_pac2port_data_wr2,
+(*mark_debug="TRUE"*)output    reg     [133:0]out_pac2port_data2,
+(*mark_debug="TRUE"*)output    reg     out_pac2port_data_wr2,
 output    reg     out_pac2port_valid2,
 output    reg     out_pac2port_valid_wr2,
 
@@ -66,14 +66,13 @@ output    wire    [7:0]bufm_ID_cnt
 reg     [133:0]delay0;
 reg     [10:0]reg_action;
 /////////state machine/////////////
-reg     [1:0]pac_state;
+(*mark_debug="TRUE"*)reg     [1:0]pac_state;
 
 localparam  IDLE_S   = 2'd0,
 			TRANS_S  = 2'd1,
 			DIC_S    = 2'd2;
 
 assign bufm_ID_cnt = {3'h0,bufm_ID_count};//bufm idle ID count
-
 always @(posedge clk or negedge rst_n) begin
       if(rst_n == 1'b0)begin
         reg_action <= 11'h0;
@@ -200,7 +199,6 @@ always @(posedge clk or negedge rst_n) begin
 								pac_state      <= TRANS_S;
 							end
 						end
-
 						else begin
 							out_pac2port_data2      <= 134'h0;
 							out_pac2port_data_wr2   <= 1'h0;

@@ -1,15 +1,28 @@
-/*========================================================================================================*\
-          Filename : ts.v,transmit and schedule
-            Author : peng jintao
-       Description : according to priority of message, deciding to schedule which queue of metadata buffer module.
-	     Called by : 
-  Revision History : 5/16/2019 Revision 1.0  peng jintao
-                     mm/dd/yy
-           Company : 662
-============================================================================================================
-          Comments :
-\*========================================================================================================*/
-
+/////////////////////////////////////////////////////////////////
+// Copyright (c) 2018-2025 FAST Group, Inc.  All rights reserved.
+//*************************************************************
+//                     Basic Information
+//*************************************************************
+//Vendor: FAST Group.
+//Xperis URL://www.xperis.com.cn
+//FAST URL://www.fastswitch.org 
+//Target Device: Xilinx
+//Filename: ts.v
+//Version: 1.0
+//Author : FAST Group
+//*************************************************************
+//                     Module Description
+//*************************************************************
+//1) priority scheduling.
+//  
+//*************************************************************
+//                     Revision List
+//*************************************************************
+//	rn1: 
+//      date:  2019/05/16
+//      modifier: 
+//      description: 
+//////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
 
 module ts#(

@@ -52,7 +52,7 @@ reg           [10:0]data2ram_raddr;
 reg           ram_rd;
 wire          [133:0]ram_dout_data;
 
-reg           [4:0]len;
+reg           flag;
 /////////write//////////////////////
 reg           [1:0]pkt_write_state;
 localparam     W_IDLE_S = 2'd0,
@@ -68,26 +68,50 @@ always @(posedge clk or negedge rst_n) begin
 	   case(pkt_write_state)		  		  
 		  W_IDLE_S:begin
 		      ram_wr           <= 1'b0;
-		      if(addr2data_waddr_wr == 1'b1)begin				   
-				   pkt_write_state  <= FIRST_S;
+		      if(addr2data_waddr_wr == 1'b0)begin				   
+				   pkt_write_state  <= W_IDLE_S;
+			  end
+			  else if(in_data_ctrl_data_wr == 1'b1)begin //data_wr and addr_wr come togeter,tansmit pkt
+			       data2ram_waddr   <= addr2data_waddr ;
+			       ram_din_data     <= in_data_ctrl_data;
+                   ram_wr           <= 1'b1;
+                   flag             <= 1'b1;//data_wr and addr_wr come togeter
+			       pkt_write_state  <= FIRST_S;	
 			  end
 			  else begin
-			       pkt_write_state  <= W_IDLE_S;			       
+			       flag             <= 1'b0;
+			       pkt_write_state  <= FIRST_S;			       
 			  end
 		  end		  
 		  FIRST_S:begin//write pkt to RAM and address is write base_addr
-		       if(in_data_ctrl_data_wr == 1'b1)begin
-			   		ram_din_data     <= in_data_ctrl_data;
-				    ram_wr           <= 1'b1;
-					data2ram_waddr   <= addr2data_waddr ;
-					
-					pkt_write_state  <= WRITE_S;
-			   end
-			   else begin
-			        ram_wr           <= 1'b0;
-					
-					pkt_write_state  <= FIRST_S;				
-			   end
+		       if(flag == 1'b1)begin
+		          if(in_data_ctrl_data_wr == 1'b1)begin
+                       ram_din_data     <= in_data_ctrl_data;
+                       ram_wr           <= 1'b1;
+                       data2ram_waddr   <= data2ram_waddr + 10'h1;
+                    
+                       pkt_write_state  <= WRITE_S;
+                   end
+                   else begin
+                       ram_wr           <= 1'b0;
+                    
+                       pkt_write_state  <= FIRST_S;    			
+		          end
+		       end
+		       else begin
+		          if(in_data_ctrl_data_wr == 1'b1)begin
+                       ram_din_data     <= in_data_ctrl_data;
+                       ram_wr           <= 1'b1;
+                       data2ram_waddr   <= addr2data_waddr ;
+                    
+                       pkt_write_state  <= WRITE_S;
+                  end
+                  else begin
+                       ram_wr           <= 1'b0;
+                    
+                       pkt_write_state  <= FIRST_S;    		          
+		          end
+		       end
 		  end		  
 		  WRITE_S:begin//write pkt to RAM and address is address+1
 		       ram_wr           <= 1'b1;
@@ -120,7 +144,6 @@ localparam     R_IDLE_S = 4'd0,
 always @(posedge clk or negedge rst_n) begin 
     if(rst_n == 1'b0) begin 
        ram_rd           <= 1'b0;
-	   len              <= 5'h0;
 	   
 	   out_data_cache_data    <= 134'b0;
 	   out_data_cache_data_wr <= 1'b0;
@@ -136,8 +159,7 @@ always @(posedge clk or negedge rst_n) begin
 		      out_data_cache_data_wr <= 1'b0;
 			  out_data_cache_valid   <= 1'b0;
 			  out_data_cache_valid_wr<= 1'b0;
-			  
-			  len              <= 5'h0;		      
+ 
 		      if(addr2data_raddr_wr == 1'b1)begin//read pkt from RAM and address is read base_addr
 			       data2ram_raddr   <= addr2data_raddr;
 				   ram_rd           <= 1'b1;
@@ -195,7 +217,6 @@ always @(posedge clk or negedge rst_n) begin
 		  end		                       			  
 		  default:begin    
               ram_rd           <= 1'b0;
-              len              <= 5'h0;
 	    
 	          out_data_cache_data    <= 134'b0;
 	          out_data_cache_data_wr <= 1'b0;

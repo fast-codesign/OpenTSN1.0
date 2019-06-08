@@ -1,14 +1,28 @@
-/*========================================================================================================*\
-          Filename : gc.v,gate control
-            Author : peng jintao
-       Description : Judge whether four queues(Q0、Q1、Q2、Q3) can be scheduled; transmit result to TS module.
-	     Called by : 
-  Revision History : 5/16/2019 Revision 1.0  peng jintao
-                     mm/dd/yy
-           Company : 662
-============================================================================================================
-          Comments :
-\*========================================================================================================*/
+/////////////////////////////////////////////////////////////////
+// Copyright (c) 2018-2025 FAST Group, Inc.  All rights reserved.
+//*************************************************************
+//                     Basic Information
+//*************************************************************
+//Vendor: FAST Group.
+//Xperis URL://www.xperis.com.cn
+//FAST URL://www.fastswitch.org 
+//Target Device: Xilinx
+//Filename: gc.v
+//Version: 1.0
+//Author : FAST Group
+//*************************************************************
+//                     Module Description
+//*************************************************************
+//1) Judge whether four queues can be scheduled.
+//  
+//*************************************************************
+//                     Revision List
+//*************************************************************
+//	rn1: 
+//      date:  2019/05/16
+//      modifier: 
+//      description: 
+//////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
 
 module gc#(
@@ -21,11 +35,11 @@ input	wire			rst_n,
 //receive from MB
 input	wire     [3:0]  in_gc_md_outport,
 input	wire     [3:0]  in_gc_fifo_empty,     
-input	wire     [6:0]  in_gc_pkt_len,
+input	wire     [10:0] in_gc_pkt_len,
 
 //receive from LCM
 input	wire            in_gc_time_slot_flag,
-input	wire     [31:0] in_gc_rate_limit,       // =100*8ns(per clock)*(rate(bps)/8)*(10^-9)= rate/(10Mbps)；add number of token per 800ns(100 clocks); the minimum committed information rate 10Mbps is allowed.
+input	wire     [31:0] in_gc_rate_limit,       // =100*8ns(per cycle)*(rate(bps)/8)*(10^-9)= rate/(10Mbps);dd number of token per 800ns(100 cycles); the minimum committed information rate 10Mbps is allowed.
 
 //receive from EBM
 input	wire            in_gc_pkt_valid,
@@ -44,7 +58,7 @@ input	wire            in_gc_q2_rden
 );
 
 wire [11:0] pkt_len;
-assign pkt_len = {5'b0,in_gc_pkt_len}<<4;
+assign pkt_len = {1'b0,in_gc_pkt_len};
 
 //token bucken parameter
 localparam TB_size = 12'h7FF;   //committed burst size is 2047 Byte.

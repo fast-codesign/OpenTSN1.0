@@ -32,8 +32,8 @@ module ibm(
    input  wire     rst_n,
 
 //receive pkt from cpu or port
-   input  wire[133:0]     in_ibm_data,
-   input  wire            in_ibm_data_wr,
+   (*mark_debug="TRUE"*)input  wire[133:0]     in_ibm_data,
+   (*mark_debug="TRUE"*)input  wire            in_ibm_data_wr,
    input  wire            in_ibm_valid,
    input  wire            in_ibm_valid_wr,
    output wire[4:0]       out_ibm_bufm_ID,
@@ -42,8 +42,8 @@ module ibm(
    input  wire            in_ibm_tsn_md_wr,  
 
 //transmit pkt to data_cache
-   output reg[133:0]      out_ibm_data,
-   output reg             out_ibm_data_wr,
+   (*mark_debug="TRUE"*)output reg[133:0]      out_ibm_data,
+   (*mark_debug="TRUE"*)output reg             out_ibm_data_wr,
    output reg             out_ibm_valid,
    output reg             out_ibm_valid_wr,
    
@@ -51,14 +51,14 @@ module ibm(
    input  wire[4:0]       in_ibm_ID_count,
 
 //parse TSN_MD transmit to next module
-   output reg[23:0]       out_ibm_md,
-   output reg             out_ibm_md_wr
+   (*mark_debug="TRUE"*)output reg[23:0]       out_ibm_md,
+   (*mark_debug="TRUE"*)output reg             out_ibm_md_wr
 );
 
 reg          out_ibm_valid_delay;
 reg          [23:0]tsn_md_reg;
 
-reg [1:0]    data_state;
+(*mark_debug="TRUE"*)reg [1:0]    data_state;
 //***************************************************
 //             Retransmit Pkt To Data_Cache
 //***************************************************

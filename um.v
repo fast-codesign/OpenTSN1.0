@@ -92,10 +92,6 @@ wire [63:0]eos_mdin_cnt;
 wire [63:0]eos_mdout_cnt;
 wire [31:0]token_bucket_para;
 
-wire in_goe_data_wr;
-wire [133:0] in_goe_data;
-wire in_goe_valid_wr;
-wire in_goe_valid;
 lcm lcm(
 .clk(clk),
 .rst_n(rst_n),
@@ -244,7 +240,7 @@ eos eos(
 .out_eos_bandwidth_discard(in_ebm_bandwidth_discard),
 .out_eos_md(out_eos_tsn_md),
 .out_eos_md_wr(out_eos_tsn_md_wr),
-.in_eos_pkt_valid(in_goe_valid)
+.in_eos_pkt_valid(pktout_valid)
 );
 
 ebm ebm_inst(
@@ -267,9 +263,12 @@ ebm ebm_inst(
 .in_ebm_md(out_eos_tsn_md),
 .in_ebm_md_wr(out_eos_tsn_md_wr)  
 );
+wire in_goe_data_wr;
+wire [133:0] in_goe_data;
+wire in_goe_valid_wr;
+wire in_goe_valid;
 
-
- goe goe(
+ goe (
 
 .clk(clk),
 .rst_n(rst_n),

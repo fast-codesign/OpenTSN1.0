@@ -139,7 +139,6 @@ lreport #(
 .direction(out_direction),
 .token_bucket_para(out_token_bucket_para),
 .direct_mac_addr(out_direct_mac_addr),
-.time_slot_period(time_slot_period),
 
 .esw_pktin_cnt(esw_pktin_cnt),
 .esw_pktout_cnt(esw_pktout_cnt),

@@ -53,7 +53,6 @@ module lreport #(
 	input direction,
 	input [31:0] token_bucket_para,
 	input [47:0] direct_mac_addr,
-	input [31:0] time_slot_period,
 
 	//input from esw
 	input [63:0] esw_pktin_cnt,
@@ -265,7 +264,7 @@ always @(posedge clk or negedge rst_n) begin
 					4'd0:begin
 						out_lr_data_wr <= 1'b1;
 						//smid == 8'd128;
-						out_lr_data <= {2'b01,4'b0,1'b1,1'b0,6'b0,2'b0,6'b0,16'd208, 8'd128, 8'd1, 48'b0, time_stamp_rec[31:0]};
+						out_lr_data <= {2'b01,4'b0,1'b0,1'b0,6'b0,2'b0,6'b0,16'd208, 8'd128, 8'd1, 80'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -286,7 +285,7 @@ always @(posedge clk or negedge rst_n) begin
 							beacon_update_slave <= beacon_update_master;
 						end
 						else begin
-							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'hf, 8'b0};
+							out_lr_data <= {2'b11, 4'b0, cnc_mac_addr, in_local_mac_id, 16'h88f7, 4'b0, 4'he, 8'b0};
 						end
 					end
 					4'd3:begin
@@ -297,7 +296,7 @@ always @(posedge clk or negedge rst_n) begin
 					end
 					4'd4:begin
 						out_lr_data_wr <= 1'b1;
-						out_lr_data <= {2'b11,4'b0, 96'b0, 16'b0, ptp_seq};
+						out_lr_data <= {2'b11,4'b0,96'b0, ptp_seq, 16'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -310,7 +309,7 @@ always @(posedge clk or negedge rst_n) begin
 					//beacon field
 					4'd6:begin
 						out_lr_data_wr <= 1'b1;
-						out_lr_data <= {2'b11,4'b0,direct_mac_addr, direction, 15'b0, token_bucket_para, time_slot_period};
+						out_lr_data <= {2'b11,4'b0,direct_mac_addr, direction, 15'b0, token_bucket_para,32'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -336,7 +335,7 @@ always @(posedge clk or negedge rst_n) begin
 					end
 					4'd10:begin
 						out_lr_data_wr <= 1'b1;
-						out_lr_data <= {2'b11,4'b0,2'b0, eos_q0_used_cnt, 2'b0, eos_q1_used_cnt, 2'b0, eos_q2_used_cnt, 2'b0, eos_q3_used_cnt, 96'b0};
+						out_lr_data <= {2'b11,4'b0,eos_q0_used_cnt, eos_q1_used_cnt, eos_q2_used_cnt, eos_q3_used_cnt, 1'b0, 103'b0};
 						out_lr_data_valid <= 1'b0;
 						out_lr_data_valid_wr <= 1'b0;
 					end
@@ -392,7 +391,7 @@ always @(posedge clk or negedge rst_n) begin
 		report_flag_master <= 1'b0;
 	end
 	else begin
-		if(precision_time[29:0] == 30'h0) begin
+		if(precision_time[31:0] == 32'hffff) begin
 			report_flag_master <= ~report_flag_master;
 		end
 
