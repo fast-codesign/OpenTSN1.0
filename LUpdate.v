@@ -90,9 +90,9 @@ reg [4:0] update_pkt_cnt;
 reg [2:0] lupdate_state;
 
 localparam IDLE_S = 3'b001,
-		UPDATE_S = 3'b010,
-		TRAN_S = 3'b011,
-		DISC_S = 3'b100;
+		   UPDATE_S = 3'b010,
+		   TRAN_S = 3'b011,
+		   DISC_S = 3'b100;
 
 
 
@@ -114,8 +114,8 @@ always @(posedge clk or negedge rst_n) begin
 
 		lupdate_state <= IDLE_S;
 
-   
-	end
+   	end
+
 	else begin
 		case(lupdate_state)
 			IDLE_S:begin
@@ -131,7 +131,7 @@ always @(posedge clk or negedge rst_n) begin
 
 						lupdate_state <= UPDATE_S;
 					end
-
+					//if this is a pkt from LOCAL LCM but comes from outside, need to drop it.
 					else if(in_lu_data[79:32] == in_local_mac_id && lu_data_2[127] == 1'b0)begin
 						out_lu_data <= 134'b0;
 						out_lu_data_wr <= 1'b0;

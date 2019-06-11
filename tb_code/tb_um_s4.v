@@ -18,54 +18,46 @@ module um_tb
 	wire pktout_data_valid_wr;
 	wire pktout_ready;
 
+	reg [47:0] precision_time;
+
 
 //initialize module
 um um_s4_tb(
 
 .clk(clk),
-.um_timestamp(),
 .rst_n(rst_n),
-    
-//cpu or port
-.pktin_data_wr(pktin_data_wr),
-.pktin_data(pktin_data),
-.pktin_data_valid(pktin_data_valid),
-.pktin_data_valid_wr(pktin_data_valid_wr),
-.pktin_ready(pktin_ready),
-    
-.pktout_data_wr(pktout_data_wr),
-.pktout_data(pktout_data),
-.pktout_data_valid(pktout_data_valid),
-.pktout_data_valid_wr(pktout_data_valid_wr),
-.pktout_ready(pktout_ready), 
 
-//control path
-.dma2um_data(),
-.dma2um_data_wr(),
-.um2dma_ready(),
-    
-.um2dma_data(),
-.um2dma_data_wr(),
-.dma2um_ready(),
-    
-//to match
-.um2me_key_wr(),
-.um2me_key_valid(),
-.um2match_key(),
-.um2me_ready(),
-//from match
-.me2um_id_wr(),
-.match2um_id(),
-.um2match_gme_alful(),
-//localbus
-.ctrl_valid(),  
-.ctrl2um_cs_n(),
-.um2ctrl_ack_n(),
-.ctrl_cmd(),
-.ctrl_datain(),
-.ctrl_addr(),
-.ctrl_dataout(),
-.um_timer()
+.pktout_usedw_0(),
+.pktout_usedw_1(),
+
+.pktin_data(pktin_data),
+.pktin_data_wr(pktin_data_wr),
+.pktin_valid(pktin_data_valid),
+.pktin_valid_wr(pktin_data_valid_wr),
+.pktin_ready(pktin_ready),
+
+.precision_time(precision_time),
+.local_mac_id(),
+
+.pktout_data_0(pktout_data),
+.pktout_data_wr_0(pktout_data_wr),
+.pktout_valid_0(pktout_data_valid),
+.pktout_valid_wr_0(pktout_data_valid_wr),
+
+.pktout_data_1(),
+.pktout_data_wr_1(),
+.pktout_valid_1(),
+.pktout_valid_wr_1(),
+
+.port2_pktout_data(),
+.port2_pktout_data_wr(),
+.port2_pktout_valid(),
+.port2_pktout_valid_wr(),
+
+.port3_pktout_data(),
+.port3_pktout_data_wr(),
+.port3_pktout_valid(),
+.port3_pktout_valid_wr()
 );
 
 
@@ -78,6 +70,7 @@ parameter CYCLE = 10;
 //Part 2: Reset
 initial begin
 	clk = 0;
+	precision_time = 48'b0;
 	rst_n = 1;
 	#(5);
 	rst_n = 0;
@@ -193,6 +186,8 @@ end
 
 always begin
 	#(CYCLE/2) clk = ~ clk;
+
+	#(CYCLE) precision_time = precision_time + 48'b1;
 end
 
 endmodule

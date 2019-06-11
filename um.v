@@ -35,10 +35,16 @@ output wire port3_pktout_valid,
 output wire port3_pktout_valid_wr
 );
 //lcm to esw//
-wire  [133:0]lcm2esw_data;
-wire  lcm2esw_data_wr;
-wire  lcm2esw_valid;
-wire  lcm2esw_valid_wr;
+wire  [133:0]lcm2ping_data;
+wire  lcm2ping_data_wr;
+wire  lcm2ping_valid;
+wire  lcm2ping_valid_wr;
+
+//ping to esw//
+wire [133:0]ping2esw_data;
+wire ping2esw_data_wr;
+wire ping2esw_valid;
+wire ping2esw_valid_wr;
 
 //esw to ibm//
 wire  [133:0]esw2ibm_data;
@@ -92,6 +98,12 @@ wire [63:0]eos_mdin_cnt;
 wire [63:0]eos_mdout_cnt;
 wire [31:0]token_bucket_para;
 
+
+wire in_goe_data_wr;
+wire [133:0] in_goe_data;
+wire in_goe_valid_wr;
+wire in_goe_valid;
+
 lcm lcm(
 .clk(clk),
 .rst_n(rst_n),
@@ -106,10 +118,10 @@ lcm lcm(
 .in_local_mac_id(local_mac_id),
 
 //esw signals 
-.out_lcm_data_wr(lcm2esw_data_wr),
-.out_lcm_data(lcm2esw_data),
-.out_lcm_data_valid(lcm2esw_valid),
-.out_lcm_data_valid_wr(lcm2esw_valid_wr),
+.out_lcm_data_wr(lcm2ping_data_wr),
+.out_lcm_data(lcm2ping_data),
+.out_lcm_data_valid(lcm2ping_valid),
+.out_lcm_data_valid_wr(lcm2ping_valid_wr),
 
 //readable & changeable registers and counters
 .out_direction(direction),
@@ -138,14 +150,28 @@ lcm lcm(
 .goe_discard_cnt()
 );
 
+ping_cnt ping_cnt(
+	.clk(clk),
+	.rst_n(rst_n),
+	.in_ping_data(lcm2ping_data),
+	.in_ping_data_wr(lcm2ping_data_wr),
+	.in_ping_data_valid(lcm2ping_valid),
+	.in_ping_data_valid_wr(lcm2ping_valid_wr),
+
+	.out_ping_data(ping2esw_data),
+	.out_ping_data_wr(ping2esw_data_wr),
+	.out_ping_data_valid(ping2esw_valid),
+	.out_ping_data_valid_wr(ping2esw_valid_wr)
+);
+
 esw esw(
 .clk(clk),
 .rst_n(rst_n),
 
-.in_esw_data(lcm2esw_data),
-.in_esw_data_wr(lcm2esw_data_wr),
-.in_esw_valid(lcm2esw_valid),
-.in_esw_valid_wr(lcm2esw_valid_wr),
+.in_esw_data(ping2esw_data),
+.in_esw_data_wr(ping2esw_data_wr),
+.in_esw_valid(ping2esw_valid),
+.in_esw_valid_wr(ping2esw_valid_wr),
 
 .out_esw_data(esw2ibm_data),
 .out_esw_data_wr(esw2ibm_data_wr),
@@ -240,7 +266,7 @@ eos eos(
 .out_eos_bandwidth_discard(in_ebm_bandwidth_discard),
 .out_eos_md(out_eos_tsn_md),
 .out_eos_md_wr(out_eos_tsn_md_wr),
-.in_eos_pkt_valid(pktout_valid)
+.in_eos_pkt_valid(in_goe_valid)
 );
 
 ebm ebm_inst(
@@ -263,12 +289,9 @@ ebm ebm_inst(
 .in_ebm_md(out_eos_tsn_md),
 .in_ebm_md_wr(out_eos_tsn_md_wr)  
 );
-wire in_goe_data_wr;
-wire [133:0] in_goe_data;
-wire in_goe_valid_wr;
-wire in_goe_valid;
 
- goe (
+
+ goe goe(
 
 .clk(clk),
 .rst_n(rst_n),

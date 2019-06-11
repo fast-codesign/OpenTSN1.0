@@ -96,6 +96,10 @@ wire [31:0] time_slot_period;
 //parameter time_slot = 16'h7a12;  //counting for 250us
 reg [15:0] time_slot_cnt;  //used to reset every 0x7a12 cycles.
 
+//pkt transmit cnt
+reg [31:0] lcm_pkt_recv_cnt;
+reg [31:0] lcm_pkt_sent_cnt;
+
 
 //---------------reverse time slot for CQF---------------//
 always @(posedge clk or negedge rst_n) begin
@@ -116,6 +120,27 @@ always @(posedge clk or negedge rst_n) begin
 	end
 end
 //---------------reverse time slot for CQF---------------//
+
+
+
+//---------------packets transmit count---------------//
+always @(posedge clk or negedge rst_n) begin
+	if(!rst_n)begin
+		lcm_pkt_recv_cnt <= 32'b0;
+		lcm_pkt_sent_cnt <= 32'b0;
+	end
+
+	else begin
+		if(in_lcm_data_valid == 1'b1) begin
+			lcm_pkt_recv_cnt <= lcm_pkt_recv_cnt + 32'b1;
+		end
+
+		if(out_lcm_data_valid == 1'b1) begin
+			lcm_pkt_sent_cnt <= lcm_pkt_sent_cnt + 32'b1;
+		end
+	end
+end
+//---------------packet transmit count---------------//
 
 //sub-modules
 lreport #(

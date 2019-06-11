@@ -113,7 +113,7 @@ always @(posedge clk or negedge rst_n) begin
 							if(in_pfw_key[5:0] == 6'h2)begin//pkt form Local direct
 								pfw_state    <= D_COM_S;
 							end
-							else begin                      //updata
+							else begin                      //update
 								pfw_state    <= DIC_S;
 							end							
 						end
@@ -128,6 +128,7 @@ always @(posedge clk or negedge rst_n) begin
 						end
 					end
 					else begin
+						pfw_state        <= D_COM_S;
 					end
 				end
 				D_COM_S:begin

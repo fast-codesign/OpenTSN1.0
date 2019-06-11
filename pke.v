@@ -3,26 +3,19 @@
 //*************************************************************
 //                     Basic Information
 //*************************************************************
-//Vendor: FAST Group.
-//Xperis URL://www.xperis.com.cn
+//Vendor: NSG Group of NUDT.
 //FAST URL://www.fastswitch.org 
-//Target Device: Xilinx
+//Target Device: Xilinx/Intel
 //Filename: pke.v
 //Version: 1.0
-//Author : FAST Group
+//Author : Bo Chen
 //*************************************************************
 //                     Module Description
 //*************************************************************
 // 1)pkt parse:TSN/PTP/reserbed bandwidth/best effort
 // 2)transmit pkt and key and pkttype to pfw.
 //*************************************************************
-//                     Revision List
-//*************************************************************
-//	rn1: 
-//      date:  2019/05/15
-//      modifier: 
-//      description: 
-//////////////////////////////////////////////////////////////
+
 module  pke(
 input     wire    clk,
 input     wire    rst_n,
@@ -181,8 +174,8 @@ always @(posedge clk or negedge rst_n) begin
 		        out_pke_data_wr   <= 1'h0;
 		        out_pke_valid     <= 1'h0;
 		        out_pke_valid_wr  <= 1'h0;
-		        out_pke_pkttype           <= 3'h0;
-		        out_pke_key               <= 102'h0;
+		        out_pke_pkttype   <= 3'h0;
+		        out_pke_key       <= 102'h0;
 		        
 		        pke_state         <= IDLE_S;
 		   end		   	  

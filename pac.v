@@ -66,6 +66,13 @@ output    wire    [7:0]bufm_ID_cnt
 reg     [133:0]delay0;
 reg     [10:0]reg_action;
 /////////state machine/////////////
+
+
+/*************ping_cnt*****************/
+(*mark_debug="TRUE"*)reg [15:0] out_ping_cnt;
+
+/*************ping_cnt*****************/
+
 (*mark_debug="TRUE"*)reg     [1:0]pac_state;
 
 localparam  IDLE_S   = 2'd0,
@@ -100,6 +107,8 @@ always @(posedge clk or negedge rst_n) begin
 	       out_pac2port_data_wr2 <= 1'h0;
 	       out_pac2port_valid2   <= 1'h0;
 	       out_pac2port_valid_wr2<= 1'h0;	
+
+	       out_ping_cnt <= 16'b0;
 
 		   pac_state	 	 <= IDLE_S;
 	  end
@@ -186,6 +195,19 @@ always @(posedge clk or negedge rst_n) begin
 							
 							out_pac2port_data2    <= delay0;
 							out_pac2port_data_wr2 <= 1'h1;
+
+
+							/**************cnt ping****************/
+							if(delay0[71:64] == 8'hff && delay0[133:132] == 2'b01) begin
+								out_ping_cnt <= out_ping_cnt + 1'b1;
+							end
+
+							else begin
+								out_ping_cnt <= out_ping_cnt;
+							end
+
+							/**************cnt ping****************/
+							
 							if(delay0[133:132] == 2'b10)begin															
 								out_pac2port_valid2   <= 1'h1;
 								out_pac2port_valid_wr2<= 1'h1;
