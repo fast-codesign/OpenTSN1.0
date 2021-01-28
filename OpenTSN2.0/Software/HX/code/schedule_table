@@ -1,6 +1,0 @@
-{
-	type:schedule
-	src_service_id:00,msg_type:04,dst_service_id:01
-	src_service_id:00,msg_type:30,dst_service_id:10
-	src_service_id:10,msg_type:30,dst_service_id:01
-}
