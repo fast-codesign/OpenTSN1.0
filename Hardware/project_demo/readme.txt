@@ -1,0 +1,1 @@
+TSNSWITCH1.0和TSNNIC1.0是在OpenBOX_S4上实现的，如需可执行文件或移植到其他平台上，请咨询2109522552@qq.com或w.quan@nudt.edu.cn。
