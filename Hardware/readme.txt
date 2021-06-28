@@ -1,4 +1,4 @@
 ﻿本目录中各文件夹说明如下：
-code：        存放TSN_SWITCH和TSN_Tester工程的源代码
-project_demo：示例工程代码（器件相关）
-doc：         硬件设计文档与使用手册
+code：               用于存放TSNSwitch和TSNNic工程的源代码
+doc：                 用于存放TSNSwitch和TSNNic硬件设计文档与使用手册
+project_demo：用于存放示例工程代码

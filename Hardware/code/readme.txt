@@ -1,3 +1,3 @@
 ﻿本目录中各文件夹内容及用途说明如下：
-TSN_SWITCH1.0：主要包含TSN交换机硬件逻辑源码；
-TSNNIC1.0:主要包含TSN_NIC测试仪硬件逻辑源码。
+TSNSwitch1.0：用于存放OpenTSN1.0中TSN交换机的代码。
+TSNNic1.0:        用于存放OpenTSN1.0中TSN网卡的代码。

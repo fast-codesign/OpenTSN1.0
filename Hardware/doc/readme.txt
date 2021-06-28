@@ -1,5 +1,3 @@
-本目录中各文件说明如下：
-TSNNic操作手册                    介绍TSN测试仪使用手册。
-TSNNic硬件设计文档:             介绍TSN测试仪的设计文档。
-TSNSwitch硬件设计文档:    此文档为TSN交换机处理逻辑的设计方案，包含其整体架构、报文的处理流程。
-
+��Ŀ¼�и��ļ���˵�����£�
+��Ʒ��������TSNSwitch��TSNNic����Ʒ���
+ʹ���ֲ᣺���TSNNic�����ֲ�
